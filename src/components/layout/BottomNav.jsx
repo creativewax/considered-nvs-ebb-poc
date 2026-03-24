@@ -30,24 +30,29 @@ export default function BottomNav({ onAddClick, splashMode = false }) {
   // ── SPLASH MODE: only show the arrow button in the centre
   if (splashMode) {
     return (
-      <nav className={styles.nav}>
-        <div className={styles.addButtonWrapper}>
-          <button
-            className={styles.addButton}
-            onClick={() => navigate(ROUTES.HOME)}
-            aria-label="Enter app"
-          >
-            <ArrowRight size={22} strokeWidth={2.5} />
-          </button>
-        </div>
-      </nav>
+      <div className={styles.navWrapper}>
+        <div className={styles.navBlur} />
+        <nav className={styles.nav}>
+          <div className={styles.addButtonWrapper}>
+            <button
+              className={styles.addButton}
+              onClick={() => navigate(ROUTES.HOME)}
+              aria-label="Enter app"
+            >
+              <ArrowRight size={22} strokeWidth={2.5} />
+            </button>
+          </div>
+        </nav>
+      </div>
     )
   }
 
   // ── STANDARD MODE: full nav
   return (
-    <nav className={styles.nav}>
-      {NAV_ITEMS.map((item) => {
+    <div className={styles.navWrapper}>
+      <div className={styles.navBlur} />
+      <nav className={styles.nav}>
+        {NAV_ITEMS.map((item) => {
         if (item.path === null) {
           return (
             <div key="add" className={styles.addButtonWrapper}>
@@ -77,6 +82,7 @@ export default function BottomNav({ onAddClick, splashMode = false }) {
           </button>
         )
       })}
-    </nav>
+      </nav>
+    </div>
   )
 }
