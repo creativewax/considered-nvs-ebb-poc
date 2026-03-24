@@ -61,7 +61,7 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
 
     const chartW = w - PADDING_LEFT - PADDING_RIGHT
     const CURVE_WIDTH = 3  // Thinner vertical/bezier transitions
-    const CURVE_SPREAD = 12 // How far the S-curve extends horizontally
+    const CURVE_SPREAD = 7  // How far the S-curve extends horizontally
 
     // Pre-compute all segment positions
     const segs = tl.map((seg) => {
