@@ -1,5 +1,6 @@
 // src/App.jsx
 
+import './lib/init'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import AppLayout from './components/layout/AppLayout'
