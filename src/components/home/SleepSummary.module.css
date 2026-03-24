@@ -47,6 +47,24 @@
   color: var(--colour-text-secondary);
 }
 
+/* ---- INVERTED (white text over pixi blob) -------------------------------- */
+
+.inverted .date {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.inverted .qualityLabel {
+  color: white;
+}
+
+.inverted .score {
+  color: white;
+}
+
+.inverted .duration {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* ---- EMPTY STATE --------------------------------------------------------- */
 
 .empty {

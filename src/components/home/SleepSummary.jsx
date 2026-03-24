@@ -11,7 +11,7 @@ import styles from './SleepSummary.module.css'
 // SLEEP SUMMARY — most recent night's data, centre-aligned
 // ------------------------------------------------------------
 
-export default function SleepSummary() {
+export default function SleepSummary({ inverted = false }) {
   const { records, isLoading, loadRecords } = useSleep()
 
   useEffect(() => {
@@ -42,11 +42,10 @@ export default function SleepSummary() {
   const date      = formatDate(latest.date)
 
   return (
-    <div className={styles.summary}>
+    <div className={`${styles.summary} ${inverted ? styles.inverted : ''}`}>
       <p className={styles.date}>{date}</p>
 
-      {/* Quality label — colour-coded to match quality level */}
-      <p className={styles.qualityLabel} style={{ color: colour }}>
+      <p className={styles.qualityLabel} style={inverted ? undefined : { color: colour }}>
         {label} Sleep
       </p>
 

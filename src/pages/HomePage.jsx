@@ -33,11 +33,11 @@ export default function HomePage() {
           transform: 'translate(-50%, -50%) scale(0.7)',
           pointerEvents: 'none',
         }}>
-          <PixiBackground />
+          <PixiBackground showCutout={false} />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <SleepSummary />
+          <SleepSummary inverted />
         </div>
       </div>
 

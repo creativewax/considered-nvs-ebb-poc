@@ -80,6 +80,7 @@ const FRAGMENT_SRC = `
   uniform float uDriftSpeed;
   uniform float uSaturation;
   uniform vec3 uPageBg;
+  uniform float uShowCutout;
 
   #define PI 3.14159265359
   #define TWO_PI 6.28318530718
@@ -203,10 +204,12 @@ const FRAGMENT_SRC = `
     // Sharp edge
     float mask = smoothstep(blobR + uEdgeSoftness, blobR - uEdgeSoftness, dist);
 
-    // Cut out inner circle (where the white circle sits)
-    float innerCut = smoothstep(uInnerRadius - uInnerSoftness, uInnerRadius + uInnerSoftness, dist);
+    // Cut out inner circle (only when cutout is enabled)
+    float innerCut = uShowCutout > 0.5
+      ? smoothstep(uInnerRadius - uInnerSoftness, uInnerRadius + uInnerSoftness, dist)
+      : 1.0;
 
-    // Final mask: outside inner circle, inside blob boundary
+    // Final mask: outside inner circle (if enabled), inside blob boundary
     float finalMask = mask * innerCut;
 
     // Rich colour from angular blend
@@ -225,7 +228,7 @@ const FRAGMENT_SRC = `
 
 // ------------------------------------------------------------ COMPONENT
 
-export default function PixiBackground() {
+export default function PixiBackground({ showCutout = true }) {
   const containerRef = useRef(null)
   const appRef = useRef(null)
 
@@ -290,6 +293,7 @@ export default function PixiBackground() {
             uDriftSpeed:    { value: s.driftSpeed, type: 'f32' },
             uSaturation:    { value: s.saturation, type: 'f32' },
             uPageBg:        { value: new Float32Array(s.pageBg), type: 'vec3<f32>' },
+            uShowCutout:    { value: showCutout ? 1.0 : 0.0, type: 'f32' },
           },
         },
       })
