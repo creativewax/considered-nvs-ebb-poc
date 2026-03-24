@@ -269,3 +269,27 @@ a {
     background: #E8E8EC;
   }
 }
+
+/* ---- CARDS & SURFACES ---------------------------------------------------- */
+
+.card {
+  background: var(--colour-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--colour-border-subtle);
+}
+
+.card-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.card-row > * {
+  flex: 1;
+}
+
+.card--poor      { background: var(--colour-poor-bg); }
+.card--fair      { background: var(--colour-fair-bg); }
+.card--good      { background: var(--colour-good-bg); }
+.card--excellent { background: var(--colour-excellent-bg); }

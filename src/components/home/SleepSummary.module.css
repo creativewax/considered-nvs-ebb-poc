@@ -1,0 +1,57 @@
+/* src/components/home/SleepSummary.module.css */
+
+/* ---- CONTAINER ------------------------------------------------------------ */
+
+.summary {
+  text-align: center;
+  padding: var(--space-xl) var(--content-padding) var(--space-lg);
+}
+
+/* ---- DATE ----------------------------------------------------------------- */
+
+.date {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--colour-text-muted);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+/* ---- QUALITY LABEL -------------------------------------------------------- */
+
+/* colour applied inline — driven by quality level */
+.qualityLabel {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-xs);
+}
+
+/* ---- SCORE --------------------------------------------------------------- */
+
+.score {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-semibold);
+  color: var(--colour-text);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-xs);
+}
+
+/* ---- DURATION ------------------------------------------------------------ */
+
+.duration {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-regular);
+  color: var(--colour-text-secondary);
+}
+
+/* ---- EMPTY STATE --------------------------------------------------------- */
+
+.empty {
+  font-size: var(--text-base);
+  color: var(--colour-text-muted);
+  line-height: var(--leading-relaxed);
+  padding: var(--space-xl) var(--space-md);
+}

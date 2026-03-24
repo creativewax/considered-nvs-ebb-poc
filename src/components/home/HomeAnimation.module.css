@@ -1,0 +1,94 @@
+/* src/components/home/HomeAnimation.module.css */
+
+/* ---- AMBIENT CONTAINER --------------------------------------------------- */
+
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: var(--z-base);
+}
+
+/* ---- ARCS — thick filled crescent/petal shapes --------------------------- */
+
+/*
+ * Each arc is a large circle with border-radius: 50%, positioned so only a
+ * crescent sliver is visible within the container. Background-colour gives
+ * the solid fill — NOT border strokes.
+ */
+
+.arc {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.72;
+  will-change: transform;
+}
+
+/* Purple arc — top-left, partially off-screen */
+.arcPurple {
+  width: 260px;
+  height: 260px;
+  background: #6B3FA0;
+  top: -80px;
+  left: -80px;
+}
+
+/* Dark teal arc — right edge, mid-height */
+.arcTeal {
+  width: 220px;
+  height: 220px;
+  background: #2D5A4E;
+  top: 30%;
+  right: -100px;
+}
+
+/* Warm orange arc — bottom-right */
+.arcOrange {
+  width: 200px;
+  height: 200px;
+  background: var(--colour-accent);
+  bottom: 80px;
+  right: -60px;
+}
+
+/* Coral arc — bottom-left */
+.arcCoral {
+  width: 240px;
+  height: 240px;
+  background: var(--colour-poor);
+  bottom: -60px;
+  left: -60px;
+}
+
+/* ---- RADIAL SPIROGRAPH --------------------------------------------------- */
+
+.radial {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.06;
+}
+
+/* ---- CENTRAL LOGO ELEMENT ------------------------------------------------ */
+
+.logoWrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  color: var(--colour-text);
+  opacity: 0.08;
+  /* animate-breathe class applied from animations.css */
+}
