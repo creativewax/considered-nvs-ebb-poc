@@ -23,8 +23,8 @@ export default function App() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path={ROUTES.SPLASH} element={<SplashPage />} />
           <Route element={<AppLayout />}>
+            <Route path={ROUTES.SPLASH}  element={<SplashPage />} />
             <Route path={ROUTES.HOME}    element={<HomePage />} />
             <Route path={ROUTES.RESULTS} element={<ResultsPage />} />
             <Route path={ROUTES.HISTORY} element={<HistoryPage />} />

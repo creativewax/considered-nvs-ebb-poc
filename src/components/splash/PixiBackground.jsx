@@ -21,36 +21,77 @@ const VERTEX_SRC = `
   }
 `
 
+// Organic coloured lobes radiating from centre — like flower petals
+// Each lobe is a directional blob defined by angle + noise distortion
 const FRAGMENT_SRC = `
   in vec2 vTextureCoord;
   uniform float uTime;
 
+  #define PI 3.14159265359
+
+  // Simple 2D noise from sine combinations
+  float noise(vec2 p, float t) {
+    return sin(p.x * 2.3 + t * 0.4) * cos(p.y * 1.7 - t * 0.3)
+         + sin(p.y * 3.1 + t * 0.5) * cos(p.x * 2.8 + t * 0.2);
+  }
+
+  // Soft lobe at a given angle with organic distortion
+  float lobe(vec2 uv, float angle, float spread, float radius, float t) {
+    float a = atan(uv.y, uv.x);
+    float d = length(uv);
+
+    // Organic edge distortion
+    float n = noise(uv * 3.0, t + angle) * 0.08;
+
+    // Angular falloff — how wide the petal is
+    float angleDiff = mod(a - angle + PI, 2.0 * PI) - PI;
+    float angularFalloff = smoothstep(spread, 0.0, abs(angleDiff));
+
+    // Radial falloff — extends from centre to radius
+    float radialFalloff = smoothstep(radius + n, 0.1, d);
+
+    return angularFalloff * radialFalloff;
+  }
+
   void main() {
-    vec2 uv = vTextureCoord;
-    float t = uTime * 0.05;
+    // Centre the UV coords (-1 to 1 range)
+    vec2 uv = (vTextureCoord - 0.5) * 2.0;
+    float t = uTime;
 
-    /* Layered sine waves for organic colour drift */
-    float n1 = sin(uv.x * 3.0 + t) * cos(uv.y * 2.0 - t * 0.7);
-    float n2 = sin(uv.y * 4.0 + t * 1.3) * cos(uv.x * 1.5 + t * 0.5);
-    float n3 = sin((uv.x + uv.y) * 2.0 - t * 0.8);
-    float n4 = sin(uv.x * 1.8 - t * 0.4) * cos(uv.y * 3.2 + t * 0.6);
+    // Palette — matching the design colours
+    vec3 purple = vec3(0.42, 0.247, 0.627);   // #6B3FA0
+    vec3 teal   = vec3(0.176, 0.353, 0.306);   // #2D5A4E
+    vec3 orange = vec3(0.91, 0.514, 0.29);     // #E8834A
+    vec3 coral  = vec3(0.816, 0.337, 0.424);   // #D0566C
+    vec3 gold   = vec3(0.82, 0.66, 0.32);      // warm yellow
 
-    /* Palette colours */
-    vec3 purple = vec3(0.42, 0.25, 0.63);
-    vec3 teal   = vec3(0.27, 0.68, 0.78);
-    vec3 orange = vec3(0.91, 0.51, 0.29);
-    vec3 coral  = vec3(0.82, 0.34, 0.42);
-    vec3 white  = vec3(0.99, 0.99, 0.98);
+    // Start transparent
+    vec4 col = vec4(0.0);
 
-    /* Start from warm white, gently blend palette colours */
-    vec3 col = white;
-    col = mix(col, purple, smoothstep(0.0, 0.6, n1) * 0.3);
-    col = mix(col, teal,   smoothstep(-0.2, 0.5, n2) * 0.25);
-    col = mix(col, orange,  smoothstep(0.1, 0.7, n3) * 0.2);
-    col = mix(col, coral,   smoothstep(-0.3, 0.4, n1 * n2) * 0.15);
-    col = mix(col, white,   smoothstep(-0.1, 0.6, n4) * 0.3);
+    // 5 lobes at different angles, slowly drifting
+    float drift = t * 0.15;
 
-    gl_FragColor = vec4(col, 1.0);
+    float l1 = lobe(uv, -2.4 + drift * 0.3, 0.7, 0.85, t);
+    float l2 = lobe(uv,  -0.8 + drift * 0.2, 0.65, 0.9, t);
+    float l3 = lobe(uv,  0.5 - drift * 0.25, 0.6, 0.8, t);
+    float l4 = lobe(uv,  1.8 + drift * 0.15, 0.7, 0.85, t);
+    float l5 = lobe(uv,  3.2 - drift * 0.2, 0.55, 0.75, t);
+
+    // Blend lobes with their colours — strong, not washed out
+    col.rgb += purple * l1 * 0.9;
+    col.rgb += teal   * l2 * 0.85;
+    col.rgb += orange * l3 * 0.9;
+    col.rgb += coral  * l4 * 0.85;
+    col.rgb += gold   * l5 * 0.7;
+
+    // Alpha follows the combined lobe intensity
+    float totalIntensity = l1 + l2 + l3 + l4 + l5;
+    col.a = smoothstep(0.0, 0.3, totalIntensity) * 0.85;
+
+    // Soften where lobes overlap to avoid blowout
+    col.rgb = min(col.rgb, vec3(1.0));
+
+    gl_FragColor = col;
   }
 `
 
@@ -72,7 +113,7 @@ export default function PixiBackground() {
       await app.init({
         resizeTo: container,
         backgroundAlpha: 0,
-        antialias: false,
+        antialias: true,
         resolution: Math.min(window.devicePixelRatio, 2),
         autoDensity: true,
       })
@@ -88,7 +129,6 @@ export default function PixiBackground() {
       const w = app.screen.width
       const h = app.screen.height
 
-      /* Full-screen quad geometry */
       const geometry = new MeshGeometry({
         positions: new Float32Array([0, 0, w, 0, w, h, 0, h]),
         uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
@@ -112,20 +152,17 @@ export default function PixiBackground() {
       const quad = new Mesh({ geometry, shader })
       app.stage.addChild(quad)
 
-      /* Animate the time uniform */
+      // Animate
       app.ticker.add((ticker) => {
-        shader.resources.uniforms.uniforms.uTime += ticker.deltaTime * 0.016
+        try {
+          shader.resources.uniforms.uniforms.uTime += ticker.deltaTime * 0.016
+        } catch {
+          // Fallback uniform path for different pixi versions
+          try {
+            shader.resources.uniforms.uTime += ticker.deltaTime * 0.016
+          } catch { /* shader disposed */ }
+        }
       })
-
-      /* Handle resize */
-      const onResize = () => {
-        const newW = app.screen.width
-        const newH = app.screen.height
-        geometry.positions = new Float32Array([0, 0, newW, 0, newW, newH, 0, newH])
-      }
-
-      window.addEventListener('resize', onResize)
-      app.__resizeHandler = onResize
     }
 
     init()
@@ -133,9 +170,6 @@ export default function PixiBackground() {
     return () => {
       destroyed = true
       if (appRef.current) {
-        if (appRef.current.__resizeHandler) {
-          window.removeEventListener('resize', appRef.current.__resizeHandler)
-        }
         appRef.current.destroy(true)
         appRef.current = null
       }
@@ -150,7 +184,6 @@ export default function PixiBackground() {
         inset: 0,
         width: '100%',
         height: '100%',
-        zIndex: 0,
       }}
     />
   )

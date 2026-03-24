@@ -1,9 +1,6 @@
 // src/pages/SplashPage.jsx
 
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
-import { ROUTES } from '../constants/routes'
 import PixiBackground from '../components/splash/PixiBackground'
 import logoSvg from '../assets/Logo.svg'
 import dotsSvg from '../assets/Dots.svg'
@@ -21,39 +18,23 @@ const FADE_VARIANTS = {
   }),
 }
 
-// ------------------------------------------------------------ SPIROGRAPH SVG
+// ------------------------------------------------------------ SPIROGRAPH
 
-function SpirographDecoration() {
-  const circles = [60, 80, 100, 120, 140, 160]
-  const lines = Array.from({ length: 24 }, (_, i) => i * 15)
+function Spirograph() {
+  const rings = [50, 80, 110, 140, 170]
+  const spokes = Array.from({ length: 24 }, (_, i) => i * 15)
 
   return (
     <svg viewBox="0 0 380 380" className={styles.spirograph}>
-      {circles.map((r) => (
-        <circle
-          key={r}
-          cx="190"
-          cy="190"
-          r={r}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="0.5"
-        />
+      {rings.map((r) => (
+        <circle key={r} cx="190" cy="190" r={r} fill="none" stroke="currentColor" strokeWidth="0.5" />
       ))}
-      {lines.map((angle) => {
+      {spokes.map((angle) => {
         const rad = (angle * Math.PI) / 180
         const x2 = 190 + 170 * Math.cos(rad)
         const y2 = 190 + 170 * Math.sin(rad)
         return (
-          <line
-            key={angle}
-            x1="190"
-            y1="190"
-            x2={x2}
-            y2={y2}
-            stroke="currentColor"
-            strokeWidth="0.3"
-          />
+          <line key={angle} x1="190" y1="190" x2={x2} y2={y2} stroke="currentColor" strokeWidth="0.3" />
         )
       })}
     </svg>
@@ -63,16 +44,16 @@ function SpirographDecoration() {
 // ------------------------------------------------------------ COMPONENT
 
 export default function SplashPage() {
-  const navigate = useNavigate()
-
-  const handleEnter = () => navigate(ROUTES.HOME)
-
   return (
     <div className={styles.splash}>
-      <PixiBackground />
-
+      {/* SVG stack with PixiJS shader behind the circle */}
       <div className={styles.svgStack}>
-        <SpirographDecoration />
+        {/* PixiJS organic lobes — sits behind the dots circle */}
+        <div className={styles.pixiLayer}>
+          <PixiBackground />
+        </div>
+
+        <Spirograph />
 
         <motion.img
           src={dotsBkgdSvg}
@@ -104,21 +85,6 @@ export default function SplashPage() {
           custom={0.3}
         />
       </div>
-
-      <motion.div
-        className={styles.bottomBar}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 1.0, ease: 'easeOut' }}
-      >
-        <button
-          className={styles.arrowButton}
-          onClick={handleEnter}
-          aria-label="Enter app"
-        >
-          <ArrowRight size={22} strokeWidth={2.5} />
-        </button>
-      </motion.div>
     </div>
   )
 }
