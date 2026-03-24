@@ -38,7 +38,7 @@ export default function SleepSummary() {
   const quality   = scoreToQuality(latest.score)
   const colour    = QUALITY_COLOURS[quality]?.primary ?? '#6E6E73'
   const label     = QUALITY_LABELS[quality]
-  const duration  = formatDuration(latest.duration)
+  const duration  = formatDuration(latest.sleepDuration)
   const date      = formatDate(latest.date)
 
   return (
