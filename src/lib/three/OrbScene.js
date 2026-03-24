@@ -2,8 +2,8 @@
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { HDRLoader } from 'three/addons/loaders/HDRLoader.js'
-import { EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing'
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
+import { EffectComposer, RenderPass, EffectPass, BloomEffect, ToneMappingEffect } from 'postprocessing'
 import { gsap } from 'gsap'
 import noiseGlsl from './shaders/noise.glsl?raw'
 import displacementGlsl from './shaders/displacement.glsl?raw'
@@ -121,7 +121,7 @@ export class OrbScene {
       powerPreference: 'high-performance',
     })
     renderer.setClearColor(0xFDFCFB, 1)  // Match page bg — prevents iOS compositor mismatch
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMapping = THREE.NoToneMapping  // postprocessing handles tone mapping
     renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -239,14 +239,15 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    const ambient = new THREE.AmbientLight(0xffffff, 0.5)
+    // Match blobmixer: low ambient, modest spot — let the env map do the work
+    const ambient = new THREE.AmbientLight(0xffffff, 0.2)
     this._scene.add(ambient)
 
-    const spot = new THREE.SpotLight(0xffffff, 1.5)
+    const spot = new THREE.SpotLight(0xffffff, 0.5)
     spot.position.set(3, 4, 5)
-    spot.angle = Math.PI / 3
+    spot.angle = Math.PI / 4
     spot.penumbra = 1
-    spot.decay = 0.3
+    spot.decay = 0.5
     this._scene.add(spot)
   }
 
@@ -259,7 +260,7 @@ export class OrbScene {
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
-    new HDRLoader().load(
+    new RGBELoader().load(
       '/env/studio.hdr',
       (texture) => {
         // Guard: scene may have been disposed if React unmounted during load
@@ -326,7 +327,11 @@ export class OrbScene {
       intensity: 0.5,
     })
 
-    composer.addPass(new EffectPass(this._camera, bloom))
+    const toneMapping = new ToneMappingEffect({
+      mode: THREE.ACESFilmicToneMapping,
+    })
+
+    composer.addPass(new EffectPass(this._camera, bloom, toneMapping))
     this._composer = composer
   }
 
