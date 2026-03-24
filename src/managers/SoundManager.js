@@ -1,31 +1,65 @@
 // src/managers/SoundManager.js
 
 import BaseManager from './BaseManager.js'
+import { AmbientEngine } from '../lib/audio/AmbientEngine.js'
+import { EVENTS } from '../constants/events.js'
 
 // ------------------------------------------------------------
-// SOUND MANAGER — stub; Web Audio wired in Phase 9
+// SOUND MANAGER — owns the AmbientEngine lifecycle
 // ------------------------------------------------------------
 
 class SoundManager extends BaseManager {
   constructor() {
     super()
-    this._state = { playing: false, quality: null }
+    this._state  = { playing: false, quality: null }
+    this._engine = null
+
+    // When a record is selected, update the engine quality
+    this._onEvent(EVENTS.SLEEP_RECORD_SELECTED, (record) => {
+      if (record?.quality) {
+        this._setState({ quality: record.quality })
+        this._engine?.setQuality(record.quality)
+      }
+    })
   }
 
   // ------------------------------------------------------------
-  // METHODS (stubs)
+  // METHODS
   // ------------------------------------------------------------
 
   play() {
+    if (this._state.playing) return
+
+    if (!this._engine) {
+      this._engine = new AmbientEngine()
+    }
+
+    this._engine.start()
+
+    // Apply any pending quality immediately after engine starts
+    if (this._state.quality) {
+      this._engine.setQuality(this._state.quality)
+    }
+
     this._setState({ playing: true })
   }
 
   stop() {
+    if (!this._state.playing) return
+
+    this._engine?.stop()
     this._setState({ playing: false })
   }
 
   setQuality(quality) {
     this._setState({ quality })
+    this._engine?.setQuality(quality)
+  }
+
+  dispose() {
+    this._engine?.dispose()
+    this._engine = null
+    this._setState({ playing: false })
   }
 }
 
@@ -36,6 +70,9 @@ export const soundManager = new SoundManager()
 // ------------------------------------------------------------
 
 if (import.meta.hot) {
-  import.meta.hot.dispose(() => soundManager._cleanupEvents())
+  import.meta.hot.dispose(() => {
+    soundManager._cleanupEvents()
+    soundManager.dispose()
+  })
   import.meta.hot.accept()
 }
