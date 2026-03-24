@@ -3,7 +3,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js'
-import { EffectComposer, RenderPass, EffectPass, BloomEffect, VignetteEffect } from 'postprocessing'
+import { EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing'
 import { gsap } from 'gsap'
 import noiseGlsl from './shaders/noise.glsl?raw'
 import displacementGlsl from './shaders/displacement.glsl?raw'
@@ -14,9 +14,9 @@ import displacementGlsl from './shaders/displacement.glsl?raw'
 
 const DEFAULT_UNIFORMS = {
   time:              0,
-  distort:           1.0,       // EXAGGERATED for testing — should be very obvious
+  distort:           0.4,
   frequency:         2.0,
-  surfaceDistort:    0.3,       // EXAGGERATED for testing
+  surfaceDistort:    0.1,
   surfaceFrequency:  3.0,
   surfaceTime:       0,
   numberOfWaves:     5.0,
@@ -143,7 +143,7 @@ export class OrbScene {
 
   _initCamera(width, height) {
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
-    camera.position.set(0, 0, 4)
+    camera.position.set(0, 0, 5.5)  // Pulled back — orb needs room for displacement
     this._camera = camera
   }
 
@@ -189,22 +189,26 @@ export class OrbScene {
       shader.vertexShader = noiseGlsl + '\n' + displacementGlsl + '\n' + shader.vertexShader
 
       // ── STRATEGY: replace TWO chunks ──
-      // 1. beginnormal_vertex — set objectNormal BEFORE defaultnormal uses it
-      // 2. begin_vertex — set displaced position
-
-      // ── TEST: simplest possible vertex displacement ──
-      // If this creates a wobbly sphere, the chunk replacement works
-      // and the issue is in our noise functions.
-      // If this shows a smooth sphere, chunk replacement is broken.
+      // 1. beginnormal_vertex — compute displacement + recalculated normal
+      // 2. begin_vertex — use displaced position
       shader.vertexShader = shader.vertexShader.replace(
         '#include <beginnormal_vertex>',
         /* glsl */ `
-          // TEST: displace vertices with simple sine wave
-          float testDisp = sin(position.x * 10.0 + time) * 0.3
-                         + sin(position.y * 8.0 + time * 1.3) * 0.2
-                         + sin(position.z * 12.0 - time * 0.7) * 0.15;
-          vec3 displacedPosition = position + normalize(normal) * testDisp;
-          vec3 objectNormal = normal; // simplified — no normal recalc for test
+          vec3 displacedPosition = position + normalize(normal) * f(position);
+
+          vec3 objectNormal = normal;
+          if (fixNormals == 1.0) {
+            float offset = 0.5 / 512.0;
+            vec3 tangent = orthogonal(normal);
+            vec3 bitangent = normalize(cross(normal, tangent));
+            vec3 neighbour1 = position + tangent * offset;
+            vec3 neighbour2 = position + bitangent * offset;
+            vec3 displacedNeighbour1 = neighbour1 + normal * f(neighbour1);
+            vec3 displacedNeighbour2 = neighbour2 + normal * f(neighbour2);
+            vec3 displacedTangent = displacedNeighbour1 - displacedPosition;
+            vec3 displacedBitangent = displacedNeighbour2 - displacedPosition;
+            objectNormal = normalize(cross(displacedTangent, displacedBitangent));
+          }
         `
       )
 
@@ -322,12 +326,7 @@ export class OrbScene {
       intensity: 0.5,
     })
 
-    const vignette = new VignetteEffect({
-      offset: 0.6,
-      darkness: 0.25,
-    })
-
-    composer.addPass(new EffectPass(this._camera, bloom, vignette))
+    composer.addPass(new EffectPass(this._camera, bloom))
     this._composer = composer
   }
 

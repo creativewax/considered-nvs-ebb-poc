@@ -1,22 +1,16 @@
 /* src/components/orb/OrbCanvas.module.css */
 
 .container {
-  width: var(--orb-size-mobile);
-  height: var(--orb-size-mobile);
-  margin: var(--space-lg) auto;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 400px;
+  margin: var(--space-sm) auto;
   position: relative;
   touch-action: none;
 }
 
 @media (min-width: 768px) {
   .container {
-    width: var(--orb-size-desktop);
-    height: var(--orb-size-desktop);
+    max-width: 440px;
   }
-}
-
-.canvas {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-full);
 }
