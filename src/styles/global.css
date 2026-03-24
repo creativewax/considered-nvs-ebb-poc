@@ -99,6 +99,13 @@
   --space-xl:               2rem;       /* 32px */
   --space-2xl:              3rem;       /* 48px */
   --space-3xl:              4rem;       /* 64px */
+  --space-4xl:              5rem;       /* 80px */
+  --space-5xl:              6rem;       /* 96px */
+  --space-6xl:              7rem;       /* 112px */
+  --space-7xl:              8rem;       /* 128px */
+  --space-8xl:              9rem;       /* 144px */
+  --space-9xl:              10rem;      /* 160px */
+  --space-10xl:             11rem;      /* 176px */
 
   /* ── RADII ── */
   --radius-sm:              0.375rem;   /* 6px */
@@ -124,7 +131,7 @@
   /* ── LAYOUT ── */
   --max-width-mobile:       100%;
   --max-width-desktop:      540px;
-  --max-height-desktop:     min(100vh, 1000px);
+  --max-height-desktop:     1000px;  /* Capped in the media query with max-height */
   --bottom-nav-height:      64px;
   --header-height:          56px;
   --orb-size-mobile:        280px;
@@ -244,7 +251,7 @@ a {
 
   #root {
     max-width: var(--max-width-desktop);
-    height: var(--max-height-desktop);
+    height: min(100vh, var(--max-height-desktop));
     margin: auto;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-frame);

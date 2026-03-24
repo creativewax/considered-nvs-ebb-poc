@@ -67,19 +67,20 @@ export default function SplashPage() {
 
       {/* ── ORB STACK ── */}
       <div className={styles.svgStack}>
+        {/* PixiJS organic blob — centred on the orb, sized via vw */}
         <div className={styles.pixiLayer}>
           <PixiBackground />
         </div>
 
         <Spirograph />
 
-        <motion.div
+        {/* <motion.div
           className={styles.whiteCircle}
           variants={FADE_VARIANTS}
           initial="hidden"
           animate="visible"
           custom={0.6}
-        />
+        /> */}
 
         <motion.img
           src={dotsSvg}
@@ -113,7 +114,7 @@ export default function SplashPage() {
         <p className={styles.bodyPrimary}>
           Every itch has its ebb. Track the flow, visualise the patterns, find peace in the spaces between flares. Your journey from hives to rest, rendered as living art.
         </p>
-        <p className={styles.bodySecondary}>
+        <p className={styles.bodyPrimary}>
           When AI meets wearables meets social art, chronic illness becomes visible, validated, and valuable.
         </p>
       </motion.div>

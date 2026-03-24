@@ -8,14 +8,14 @@ import { Application, Mesh, MeshGeometry, Shader, GlProgram } from 'pixi.js'
 
 export const BLOB_SETTINGS = {
   // Shape
-  noiseScale:     0.75,    // Lobe count — lower = fewer/broader, higher = more/bumpier
+  noiseScale:     0.65,   // Lobe count — lower = fewer/broader, higher = more/bumpier
   baseRadius:     0.75,   // Overall blob size (0-1 UV space)
   noiseAmount:    0.35,   // How far lobes extend in/out
-  octaves:        1,      // Shape smoothness — 1 = very smooth, 3+ = textured
+  octaves:        3,      // Shape smoothness — 1 = very smooth, 3+ = textured
   breatheSpeed:   0.15,   // How fast the shape breathes
 
   // Edge
-  edgeSoftness:   0.002,  // Edge crispness — lower = sharper
+  edgeSoftness:   0.0,  // Edge crispness — lower = sharper
 
   // Inner cutout (where white circle sits)
   innerRadius:    0.65,

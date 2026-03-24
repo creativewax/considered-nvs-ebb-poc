@@ -8,6 +8,7 @@ export default defineConfig({
   assetsInclude: ['**/*.frag', '**/*.vert', '**/*.glsl'],
   server: {
     port: 5173,
+    host: true,
     https: true,
     open: true,
   },

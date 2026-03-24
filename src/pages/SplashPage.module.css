@@ -9,21 +9,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-evenly;
   overflow: hidden;
-  background: var(--colour-bg);
-  padding: var(--space-xl) var(--space-lg);
+  padding: 0 var(--space-lg) calc(var(--bottom-nav-height) + var(--space-md));
 }
 
 /* ------------------------------------------------------------ HEADING */
 
 .heading {
   font-family: var(--font-heading);
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-wide);
   text-align: center;
-  margin-bottom: var(--space-lg);
   background: linear-gradient(135deg, #EBAA4E 0%, #E66F65 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -43,14 +41,22 @@
   flex-shrink: 0;
 }
 
+/* Pixi layer — centred on the svgStack, overflows to full container width */
 .pixiLayer {
   position: absolute;
-  width: 520px;
-  height: 520px;
+  width: 100vw;
+  aspect-ratio: 1;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .pixiLayer {
+    width: var(--max-width-desktop);
+  }
 }
 
 .whiteCircle {
@@ -88,9 +94,8 @@
 /* ------------------------------------------------------------ BODY COPY */
 
 .bodyCopy {
-  max-width: 320px;
+  max-width: 400px;
   text-align: center;
-  margin-top: var(--space-xl);
   z-index: 5;
 }
 
