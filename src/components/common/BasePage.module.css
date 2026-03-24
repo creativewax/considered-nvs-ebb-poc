@@ -2,8 +2,10 @@
 
 .page {
   min-height: 100%;
+  width: 100%;
+  max-width: 100%;
   padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-xl));
   padding-top: var(--safe-top);
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
