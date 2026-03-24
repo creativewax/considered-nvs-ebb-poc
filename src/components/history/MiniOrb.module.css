@@ -1,36 +1,23 @@
 /* src/components/history/MiniOrb.module.css */
 
-/* ------------------------------------------------------------ ORB BASE */
+/* ------------------------------------------------------------ ORB CONTAINER */
 
 .orb {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-full);
   flex-shrink: 0;
   position: relative;
-  overflow: hidden;
 }
 
-/* ------------------------------------------------------------ NOISE LAYER */
-/* Rotating conic-gradient creates organic swirling movement on top of the base */
+/* ------------------------------------------------------------ SVG ROTATION */
+/* Slow continuous rotation — duration set inline per quality level */
 
-.noise {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 20%,
-    transparent 40%,
-    rgba(0, 0, 0, 0.15) 60%,
-    transparent 80%,
-    rgba(255, 255, 255, 0.2) 100%
-  );
-  animation: orbRotate linear infinite;
+.svg {
+  display: block;
+  animation: orbSpin linear infinite;
 }
 
-@keyframes orbRotate {
+@keyframes orbSpin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }

@@ -25,7 +25,7 @@ export default function HistoryCard({ record }) {
       whileTap={{ scale: 0.98, boxShadow: 'none' }}
       aria-label={`View ${label} sleep on ${formatDate(record.date)}`}
     >
-      <MiniOrb quality={record.quality} />
+      <MiniOrb quality={record.quality} recordId={record.id} />
 
       <div className={styles.body}>
         <span className={styles.date}>{formatDate(record.date)}</span>
