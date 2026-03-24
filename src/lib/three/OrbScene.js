@@ -2,6 +2,7 @@
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 import { EffectComposer, RenderPass, EffectPass, BloomEffect, VignetteEffect } from 'postprocessing'
 import { gsap } from 'gsap'
 import noiseGlsl from './shaders/noise.glsl?raw'
@@ -151,6 +152,9 @@ export class OrbScene {
   _initGeometryAndMaterial() {
     const geometry = new THREE.SphereGeometry(1, 256, 256)
 
+    // Match blobmixer's MeshPhysicalMaterial setup exactly:
+    // Low roughness (0.14) + full clearcoat + moderate clearcoat roughness
+    // = wet, organic, dual-layer PBR look
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       roughness: 0.14,
@@ -158,6 +162,7 @@ export class OrbScene {
       clearcoat: 1,
       clearcoatRoughness: 0.7,
       envMapIntensity: 1.0,
+      reflectivity: 0.5,
     })
 
     // Shader injection — prepend noise + displacement, replace vertex chunks
@@ -230,41 +235,20 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initEnvironment() {
+    // Load a real studio HDRI — this is what makes blobmixer look so good.
+    // A real photograph provides naturalistic, varied reflections that
+    // programmatic lights can never match.
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
-    // Build a rich environment scene — brighter and more varied than a simple dark bg
-    const envScene = new THREE.Scene()
-    envScene.background = new THREE.Color(0x8899aa)  // Mid-tone for balanced reflections
-
-    // Multiple lights for varied reflections (like a studio setup)
-    const light1 = new THREE.PointLight(0xffffff, 30, 30)
-    light1.position.set(5, 5, 5)
-    envScene.add(light1)
-
-    const light2 = new THREE.PointLight(0x44aec6, 20, 30)
-    light2.position.set(-6, 3, -4)
-    envScene.add(light2)
-
-    const light3 = new THREE.PointLight(0xe8dcc8, 15, 30)
-    light3.position.set(0, -5, 6)
-    envScene.add(light3)
-
-    const light4 = new THREE.PointLight(0x3daa7a, 12, 30)
-    light4.position.set(4, -3, -6)
-    envScene.add(light4)
-
-    const light5 = new THREE.PointLight(0xffeedd, 18, 30)
-    light5.position.set(-4, 6, 2)
-    envScene.add(light5)
-
-    const envMap = pmrem.fromScene(envScene, 0, 0.1, 100).texture
-    this._scene.environment = envMap
-    this._mesh.material.envMap = envMap
-    this._mesh.material.needsUpdate = true
-
-    envScene.clear()
-    pmrem.dispose()
+    new RGBELoader().load('/env/studio.hdr', (texture) => {
+      const envMap = pmrem.fromEquirectangular(texture).texture
+      this._scene.environment = envMap
+      this._mesh.material.envMap = envMap
+      this._mesh.material.needsUpdate = true
+      texture.dispose()
+      pmrem.dispose()
+    })
   }
 
   // ------------------------------------------------------------
@@ -291,9 +275,9 @@ export class OrbScene {
     composer.addPass(new RenderPass(this._scene, this._camera))
 
     const bloom = new BloomEffect({
-      luminanceThreshold: 0.15,
+      luminanceThreshold: 0.1,
       luminanceSmoothing: 0.5,
-      intensity: 0.4,
+      intensity: 0.5,
     })
 
     const vignette = new VignetteEffect({
