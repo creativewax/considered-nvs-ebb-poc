@@ -1,6 +1,6 @@
 // src/components/home/TrendCards.jsx
 
-import { TrendingUp, TrendingDown, Minus, BarChart3 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Equal, BarChart3 } from 'lucide-react'
 import { useSleep } from '../../hooks/useSleep'
 import styles from './TrendCards.module.css'
 
@@ -41,13 +41,7 @@ export default function TrendCards() {
     ? <TrendingUp size={18} />
     : trend.direction === 'down'
       ? <TrendingDown size={18} />
-      : <Minus size={18} />
-
-  const trendColour = trend.direction === 'up'
-    ? 'var(--colour-good)'
-    : trend.direction === 'down'
-      ? 'var(--colour-poor)'
-      : 'var(--colour-text-muted)'
+      : <Equal size={18} />
 
   const trendLabel = trend.direction === 'up'
     ? `+${trend.diff} pts`
@@ -66,20 +60,20 @@ export default function TrendCards() {
       {/* ── AVERAGE SCORE ── */}
       <div className={`${styles.card} ${styles.cardAvg}`}>
         <div className={styles.cardHeader}>
-          <BarChart3 size={14} className={styles.cardIcon} style={{ color: 'var(--colour-good)' }} />
+          <BarChart3 size={14} className={styles.cardIcon} />
           <span className={styles.cardLabel}>7-Day Average</span>
         </div>
-        <p className={styles.cardValue} style={{ color: 'var(--colour-good)' }}>{avgScore}</p>
+        <p className={styles.cardValue}>{avgScore}</p>
         <p className={styles.cardDesc}>out of 100</p>
       </div>
 
       {/* ── WEEKLY TREND ── */}
       <div className={`${styles.card} ${styles.cardTrend}`}>
         <div className={styles.cardHeader}>
-          <span className={styles.cardIcon} style={{ color: trendColour }}>{trendIcon}</span>
+          <span className={styles.cardIcon}>{trendIcon}</span>
           <span className={styles.cardLabel}>Weekly Trend</span>
         </div>
-        <p className={styles.cardValue} style={{ color: trendColour }}>{trendLabel}</p>
+        <p className={styles.cardValue}>{trendLabel}</p>
         <p className={styles.cardDesc}>{trendDesc}</p>
       </div>
     </div>

@@ -18,7 +18,6 @@ export default function HomePage() {
   return (
     <BasePage>
       <AnimatedGradient />
-      <HomeAnimation />
 
       {/* ── HERO SECTION — sleep summary with pixi blob behind ── */}
       <div style={{
@@ -36,6 +35,7 @@ export default function HomePage() {
           pointerEvents: 'none',
         }}>
           <PixiBackground />
+          <HomeAnimation />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
