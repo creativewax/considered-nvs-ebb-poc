@@ -28,6 +28,9 @@ const SLIDE_UP = {
   }),
 }
 
+/** Seconds per full turn — slow so the motion reads as ambient, not distracting */
+const DOTS_ROTATE_DURATION_SEC = 90
+
 // ------------------------------------------------------------ SPIROGRAPH
 
 function Spirograph() {
@@ -89,10 +92,19 @@ export default function SplashPage() {
           src={dotsSvg}
           alt=""
           className={styles.dots}
-          variants={FADE_VARIANTS}
-          initial="hidden"
-          animate="visible"
-          custom={0.5}
+          style={{ transformOrigin: '50% 50%' }}
+          initial={{ opacity: 0, scale: 0.92, rotate: 0 }}
+          animate={{ opacity: 1, scale: 1, rotate: 360 }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.5, ease: 'easeOut' },
+            scale: { duration: 0.6, delay: 0.5, ease: 'easeOut' },
+            rotate: {
+              duration: DOTS_ROTATE_DURATION_SEC,
+              delay: 1.1,
+              repeat: Infinity,
+              ease: 'linear',
+            },
+          }}
         />
 
         <motion.img
