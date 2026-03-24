@@ -46,6 +46,8 @@ export class OrbScene {
     this._surfaceSpeed = 0.003
     this._container = null
     this._activeTweens = []
+    this._baseDistort = null   // baseline distort value between config updates
+    this._onTap = null         // bound tap handler for cleanup
   }
 
   // ------------------------------------------------------------
@@ -66,6 +68,7 @@ export class OrbScene {
     this._initPostProcessing()
 
     container.appendChild(this._renderer.domElement)
+    this._initTapInteraction()
     this._animate()
   }
 
@@ -73,6 +76,9 @@ export class OrbScene {
     if (this._rafId) cancelAnimationFrame(this._rafId)
     this._rafId = null
     this._killTweens()
+    if (this._onTap && this._renderer?.domElement) {
+      this._renderer.domElement.removeEventListener('click', this._onTap)
+    }
     this._controls?.dispose()
     this._composer?.dispose()
     this._renderer?.domElement?.remove()
@@ -335,6 +341,9 @@ export class OrbScene {
     if (config.speed != null) this._speed = config.speed
     if (config.surfaceSpeed != null) this._surfaceSpeed = config.surfaceSpeed
 
+    // Track baseline distort so tap-pulse can return to it after a config update
+    if (config.distort != null) this._baseDistort = config.distort
+
     // Tween uniforms
     if (this._shader) {
       const uniformTarget = {}
@@ -407,8 +416,56 @@ export class OrbScene {
     }
   }
 
+  // ------------------------------------------------------------
+  // TAP INTERACTION — brief distort pulse on click/tap
+  // ------------------------------------------------------------
+
+  _initTapInteraction() {
+    this._onTap = () => {
+      if (!this._shader) return
+
+      const base    = this._baseDistort ?? this._shader.uniforms.distort.value
+      const pulseTo = Math.min(base + 0.15, 1.0)
+
+      // Kill any existing pulse tweens but not config tweens — use a dedicated ref
+      if (this._pulseTween) this._pulseTween.kill()
+
+      const proxy = { distort: this._shader.uniforms.distort.value }
+
+      this._pulseTween = gsap.to(proxy, {
+        distort: pulseTo,
+        duration: 0.12,
+        ease: 'power2.out',
+        onUpdate: () => {
+          if (this._shader?.uniforms?.distort) {
+            this._shader.uniforms.distort.value = proxy.distort
+          }
+        },
+        onComplete: () => {
+          // Ease back to the baseline
+          this._pulseTween = gsap.to(proxy, {
+            distort: base,
+            duration: 0.5,
+            ease: 'power2.inOut',
+            onUpdate: () => {
+              if (this._shader?.uniforms?.distort) {
+                this._shader.uniforms.distort.value = proxy.distort
+              }
+            },
+          })
+        },
+      })
+    }
+
+    this._renderer.domElement.addEventListener('click', this._onTap)
+  }
+
   _killTweens() {
     this._activeTweens.forEach((t) => t.kill())
     this._activeTweens = []
+    if (this._pulseTween) {
+      this._pulseTween.kill()
+      this._pulseTween = null
+    }
   }
 }
