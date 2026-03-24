@@ -60,39 +60,61 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
     ctx.lineJoin = 'round'
 
     const chartW = w - PADDING_LEFT - PADDING_RIGHT
+    const CORNER_R = 6  // Radius for the soft rounded corners at step transitions
 
-    for (let i = 0; i < tl.length; i++) {
-      const seg = tl[i]
+    // Pre-compute all segment positions
+    const segs = tl.map((seg) => {
       const startNorm = normaliseMins(timeToMins(seg.start), bedMins)
       const endNorm = normaliseMins(timeToMins(seg.end), bedMins)
+      return {
+        x1: PADDING_LEFT + (startNorm / totalSpan) * chartW,
+        x2: PADDING_LEFT + (endNorm / totalSpan) * chartW,
+        y: yForStage(seg.stage),
+        stage: seg.stage,
+      }
+    })
 
-      const x1 = PADDING_LEFT + (startNorm / totalSpan) * chartW
-      const x2 = PADDING_LEFT + (endNorm / totalSpan) * chartW
-      const y = yForStage(seg.stage)
+    for (let i = 0; i < segs.length; i++) {
+      const { x1, x2, y, stage } = segs[i]
+      const hasNext = i < segs.length - 1
+      const nextSeg = hasNext ? segs[i + 1] : null
+      const stageChanges = hasNext && nextSeg.y !== y
 
-      ctx.strokeStyle = STAGE_COLOURS[seg.stage]
+      // Gradient from this stage's colour to next (or just this colour)
+      if (stageChanges) {
+        const grad = ctx.createLinearGradient(x1, y, nextSeg.x1, nextSeg.y)
+        grad.addColorStop(0, STAGE_COLOURS[stage])
+        grad.addColorStop(1, STAGE_COLOURS[nextSeg.stage])
+        ctx.strokeStyle = grad
+      } else {
+        ctx.strokeStyle = STAGE_COLOURS[stage]
+      }
+
       ctx.beginPath()
       ctx.moveTo(x1, y)
-      ctx.lineTo(x2, y)
-      ctx.stroke()
 
-      // Vertical connector to next segment
-      if (i < tl.length - 1) {
-        const nextY = yForStage(tl[i + 1].stage)
-        if (nextY !== y) {
-          // Gradient connector blending from current stage colour to next
-          const grad = ctx.createLinearGradient(x2, y, x2, nextY)
-          grad.addColorStop(0, STAGE_COLOURS[seg.stage])
-          grad.addColorStop(1, STAGE_COLOURS[timeline[i + 1].stage])
-          ctx.strokeStyle = grad
-          ctx.lineWidth = 5
-          ctx.beginPath()
-          ctx.moveTo(x2, y)
-          ctx.lineTo(x2, nextY)
-          ctx.stroke()
-          ctx.lineWidth = LINE_WIDTH
-        }
+      if (stageChanges) {
+        // Draw horizontal then soft corner into vertical
+        const cornerX = x2
+        const cornerY = y
+        const nextY = nextSeg.y
+        const dir = nextY > y ? 1 : -1
+        const r = Math.min(CORNER_R, Math.abs(nextY - y) / 2)
+
+        // Horizontal up to just before the corner
+        ctx.lineTo(cornerX - r, cornerY)
+        // Quadratic curve for the soft corner
+        ctx.quadraticCurveTo(cornerX, cornerY, cornerX, cornerY + dir * r)
+        // Vertical to just before the next corner
+        ctx.lineTo(cornerX, nextY - dir * r)
+        // Quadratic curve easing into the next horizontal
+        ctx.quadraticCurveTo(cornerX, nextY, cornerX + r, nextY)
+      } else {
+        // Straight horizontal
+        ctx.lineTo(x2, y)
       }
+
+      ctx.stroke()
     }
   }, [])
 
