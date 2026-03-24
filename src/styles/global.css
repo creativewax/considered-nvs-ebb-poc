@@ -80,6 +80,7 @@
   --weight-regular:         400;
   --weight-medium:          500;        /* Primary heading weight */
   --weight-semibold:        600;        /* Sparingly — scores, emphasis only */
+  --weight-bold:            700;        /* Bold headings */
 
   --leading-tight:          1.2;
   --leading-normal:         1.5;
@@ -299,11 +300,11 @@ a {
 .page-title {
   font-family: var(--font-heading);
   font-size: var(--text-2xl);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-wide);
   line-height: var(--leading-tight);
   text-align: center;
-  margin: 0 0 var(--space-lg);
+  margin: var(--space-md) 0 var(--space-lg);
   padding: 0 var(--space-md);
   background: linear-gradient(135deg, #EBAA4E 0%, #E66F65 100%);
   -webkit-background-clip: text;
@@ -325,4 +326,8 @@ a {
   color: var(--colour-text-muted);
   text-align: center;
   padding: var(--space-2xl) var(--space-lg);
+}
+
+strong {
+  font-weight: var(--weight-bold);
 }

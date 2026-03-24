@@ -41,7 +41,6 @@
   background: linear-gradient(
     to bottom,
     var(--colour-bg) 0%,
-    var(--colour-bg) 15%,
     transparent 50%
   );
 }

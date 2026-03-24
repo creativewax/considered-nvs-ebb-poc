@@ -9,6 +9,10 @@ import AddSheet from '../add/AddSheet'
 import { ROUTES } from '../../constants/routes'
 import styles from './AppLayout.module.css'
 
+// ------------------------------------------------------------ APP LAYOUT
+// Nav, keyline, and sheet are PERSISTENT — never animate on page change.
+// Only the page content (Outlet) animates via BasePage's motion.div.
+
 export default function AppLayout() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const location = useLocation()
@@ -17,7 +21,9 @@ export default function AppLayout() {
   return (
     <>
       <main className={styles.content}>
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <Outlet key={location.pathname} />
+        </AnimatePresence>
       </main>
       <BottomNav
         onAddClick={() => setSheetOpen(true)}
