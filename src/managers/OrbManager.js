@@ -105,9 +105,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.2, gooPoleAmount: 0.2, twist: 0.8, twistFrequency: 0.35,
     roughness: 0.5, metalness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.1,
     envMapIntensity: 0.6, transmission: 0,
-    lightKey: '#6B3FA0', lightFill: '#8B2252', lightRim: '#D0566C',
+    lightKey: '#D0566C', lightFill: '#6B3FA0', lightRim: '#8B2252',
     tendrilCount: 120, tendrilLength: 0.6, tendrilThickness: 0.012,
-    color: '#5C2D91',
+    color: '#7A2255',
   },
 }
 

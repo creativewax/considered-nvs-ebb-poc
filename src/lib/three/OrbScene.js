@@ -255,19 +255,17 @@ export class OrbScene {
     this._scene.add(ambient)
 
     // Key — upper right, strongest, primary colour
-    // Lights start with warm/cool tint so they're never pure white
-    this._keyLight = new THREE.PointLight(0xffeedd, 15, 20)
-    this._keyLight.position.set(3, 4, 4)
+    // Three coloured lights — equal-ish intensity so ALL colours show
+    this._keyLight = new THREE.PointLight(0xffeedd, 12, 15)
+    this._keyLight.position.set(2.5, 3, 3)  // Close for strong coverage
     this._scene.add(this._keyLight)
 
-    // Fill — cool tone default
-    this._fillLight = new THREE.PointLight(0xddccff, 12, 20)
-    this._fillLight.position.set(-4, 1, 3)
+    this._fillLight = new THREE.PointLight(0xddccff, 12, 15)
+    this._fillLight.position.set(-3, 0, 2.5)
     this._scene.add(this._fillLight)
 
-    // Rim — warm default
-    this._rimLight = new THREE.PointLight(0xffccaa, 8, 20)
-    this._rimLight.position.set(0, -3, -4)
+    this._rimLight = new THREE.PointLight(0xffccaa, 10, 15)
+    this._rimLight.position.set(0, -2.5, -3)
     this._scene.add(this._rimLight)
   }
 
