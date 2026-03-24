@@ -168,14 +168,17 @@ export class OrbScene {
         shader.uniforms[key] = { value: val }
       }
 
-      // Prepend noise and displacement to vertex shader
+      // Prepend noise and displacement functions
       const shaderPrefix = noiseGlsl + '\n' + displacementGlsl + '\n'
       shader.vertexShader = shaderPrefix + shader.vertexShader
 
-      // Replace displacement map chunk with custom displacement + normal recalculation
+      // Replace the begin_vertex chunk to apply displacement + normal recalculation
+      // This runs AFTER defaultnormal_vertex, so we modify objectNormal via beginNormal
+      // Strategy: replace #include <begin_vertex> which sets `transformed = position`
       shader.vertexShader = shader.vertexShader.replace(
-        '#include <displacementmap_vertex>',
+        '#include <begin_vertex>',
         /* glsl */ `
+          // ── CUSTOM DISPLACEMENT ──
           vec3 displacedPosition = position + normalize(normal) * f(position);
 
           vec3 displacedNormal = normalize(normal);
@@ -193,30 +196,10 @@ export class OrbScene {
             displacedNormal = normalize(cross(displacedTangent, displacedBitangent));
           }
 
-          transformed = displacedPosition;
-        `
-      )
+          vec3 transformed = displacedPosition;
 
-      // Replace default normal to use our recalculated normal
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <defaultnormal_vertex>',
-        /* glsl */ `
-          vec3 transformedNormal = displacedNormal;
-          #ifdef USE_INSTANCING
-            mat3 m = mat3(instanceMatrix);
-            transformedNormal /= vec3(dot(m[0], m[0]), dot(m[1], m[1]), dot(m[2], m[2]));
-            transformedNormal = m * transformedNormal;
-          #endif
-          transformedNormal = normalMatrix * transformedNormal;
-          #ifdef FLIP_SIDED
-            transformedNormal = -transformedNormal;
-          #endif
-          #ifdef USE_TANGENT
-            vec3 transformedTangent = (modelViewMatrix * vec4(objectTangent, 0.0)).xyz;
-            #ifdef FLIP_SIDED
-              transformedTangent = -transformedTangent;
-            #endif
-          #endif
+          // Override the normal that defaultnormal_vertex already computed
+          vNormal = normalize(normalMatrix * displacedNormal);
         `
       )
     }

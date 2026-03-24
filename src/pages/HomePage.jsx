@@ -27,13 +27,13 @@ export default function HomePage() {
         <div style={{
           position: 'absolute',
           width: '1200px',
-          height: '800px',
-          top: '-25%',
+          height: '650px',
+          top: '-15%',
           left: '50%',
           transform: 'translate(-50%, -50%) scale(0.7)',
           pointerEvents: 'none',
         }}>
-          <PixiBackground showCutout={false} origin={[0, 0.25]} />
+          <PixiBackground showCutout={false} origin={[0, 0]} scale={[1.5, 1.5]} />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
