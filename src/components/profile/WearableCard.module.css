@@ -1,0 +1,63 @@
+/* src/components/profile/WearableCard.module.css */
+
+/* ------------------------------------------------------------ CARD */
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--colour-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ------------------------------------------------------------ ICON */
+
+.icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------ BODY */
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text);
+}
+
+.sync {
+  font-size: var(--text-sm);
+  color: var(--colour-text-secondary);
+}
+
+/* ------------------------------------------------------------ STATUS */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.statusLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}

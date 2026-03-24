@@ -1,0 +1,47 @@
+/* src/components/profile/Settings.module.css */
+
+/* ------------------------------------------------------------ SETTINGS */
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ------------------------------------------------------------ SECTION */
+
+.section {
+  background: var(--colour-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--colour-text-muted);
+  padding: var(--space-md) var(--space-lg) var(--space-sm);
+}
+
+/* ------------------------------------------------------------ ROW */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-lg) var(--space-md);
+  border-top: 1px solid var(--colour-border-subtle);
+}
+
+.label {
+  font-size: var(--text-base);
+  color: var(--colour-text);
+}
+
+.value {
+  font-size: var(--text-sm);
+  color: var(--colour-text-secondary);
+}
