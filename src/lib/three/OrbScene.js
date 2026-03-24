@@ -14,9 +14,9 @@ import displacementGlsl from './shaders/displacement.glsl?raw'
 
 const DEFAULT_UNIFORMS = {
   time:              0,
-  distort:           0.3,
+  distort:           1.0,       // EXAGGERATED for testing — should be very obvious
   frequency:         2.0,
-  surfaceDistort:    0.08,
+  surfaceDistort:    0.3,       // EXAGGERATED for testing
   surfaceFrequency:  3.0,
   surfaceTime:       0,
   numberOfWaves:     5.0,
@@ -117,9 +117,10 @@ export class OrbScene {
   _initRenderer(width, height) {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      alpha: true,
+      alpha: false,
       powerPreference: 'high-performance',
     })
+    renderer.setClearColor(0xFDFCFB, 1)  // Match page bg — prevents iOS compositor mismatch
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
@@ -221,7 +222,10 @@ export class OrbScene {
         `
       )
 
-      console.log('[OrbScene] Shader patched successfully')
+      // Verify our code is actually in the compiled shader
+      const hasDisplacement = shader.vertexShader.includes('displacedPosition')
+      const hasF = shader.vertexShader.includes('f(position)')
+      console.log('[OrbScene] Shader patched. Has displacement:', hasDisplacement, 'Has f():', hasF)
 
       // Re-apply cached config after shader recompilation (e.g. after HDRI load)
       if (this._lastConfig) {
