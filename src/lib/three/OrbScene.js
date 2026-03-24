@@ -7,6 +7,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 // making the orb look flat. Direct rendering with the renderer's own
 // ACES tone mapping produces blobmixer-quality results.
 import { gsap } from 'gsap'
+import { TendrilSystem } from './TendrilSystem'
 import noiseGlsl from './shaders/noise.glsl?raw'
 import displacementGlsl from './shaders/displacement.glsl?raw'
 
@@ -95,8 +96,7 @@ export class OrbScene {
   dispose() {
     this._mesh?.geometry?.dispose()
     this._mesh?.material?.dispose()
-    this._tendrilMesh?.geometry?.dispose()
-    this._tendrilMesh?.material?.dispose()
+    this._tendrils?.dispose()
     this._renderer?.dispose()
     this._scene = null
     this._camera = null
@@ -240,55 +240,8 @@ export class OrbScene {
     this._mesh = new THREE.Mesh(geometry, material)
     this._scene.add(this._mesh)
 
-    // ── TENDRIL MESH — larger transparent sphere with more extreme displacement ──
-    // Creates wispy extensions around the main orb
-    const tendrilGeo = new THREE.SphereGeometry(1.15, 128, 128)
-    const tendrilMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      roughness: 0.3,
-      metalness: 0,
-      clearcoat: 0.5,
-      clearcoatRoughness: 0.3,
-      envMapIntensity: 2.0,
-      transparent: true,
-      opacity: 0.1,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    })
-
-    tendrilMat.customProgramCacheKey = () => 'ebb-tendril-displacement'
-
-    tendrilMat.onBeforeCompile = (shader) => {
-      this._tendrilShader = shader
-      for (const [key, val] of Object.entries(DEFAULT_UNIFORMS)) {
-        shader.uniforms[key] = { value: key === 'distort' ? val * 2.5 : val }
-      }
-
-      shader.vertexShader = noiseGlsl + '\n' + displacementGlsl + '\n' + shader.vertexShader
-
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <beginnormal_vertex>',
-        /* glsl */ `
-          vec3 twistedPosition = applyTwist(position);
-          vec3 displacedPosition = twistedPosition + normalize(normal) * f(twistedPosition);
-          vec3 objectNormal = normal;
-        `
-      )
-
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <begin_vertex>',
-        /* glsl */ `
-          vec3 transformed = displacedPosition;
-        `
-      )
-
-      if (this._lastConfig) {
-        this._applyTendrilConfig(this._lastConfig)
-      }
-    }
-
-    this._tendrilMesh = new THREE.Mesh(tendrilGeo, tendrilMat)
-    this._scene.add(this._tendrilMesh)
+    // ── TENDRIL SYSTEM — metallic structures growing from the sphere ──
+    this._tendrils = new TendrilSystem(this._scene)
   }
 
   // ------------------------------------------------------------
@@ -350,9 +303,8 @@ export class OrbScene {
         this._scene.environment = envMap
         this._mesh.material.envMap = envMap
         this._mesh.material.needsUpdate = true
-        if (this._tendrilMesh) {
-          this._tendrilMesh.material.envMap = envMap
-          this._tendrilMesh.material.needsUpdate = true
+        if (this._tendrils) {
+          this._tendrils.setEnvMap(envMap)
         }
         texture.dispose()
         pmrem.dispose()
@@ -403,10 +355,9 @@ export class OrbScene {
       this._shader.uniforms.time.value += this._speed
       this._shader.uniforms.surfaceTime.value += this._surfaceSpeed
     }
-    // Tendril mesh — slightly offset time for organic variation
-    if (this._tendrilShader) {
-      this._tendrilShader.uniforms.time.value += this._speed * 0.7
-      this._tendrilShader.uniforms.surfaceTime.value += this._surfaceSpeed * 1.3
+    // Animate tendrils
+    if (this._tendrils && this._lastConfig) {
+      this._tendrils.update(0.016, this._lastConfig)
     }
 
     this._controls?.update()
@@ -428,22 +379,9 @@ export class OrbScene {
     if (config.surfaceSpeed != null) this._surfaceSpeed = config.surfaceSpeed
   }
 
-  _applyTendrilConfig(config) {
-    if (!this._tendrilShader) return
-    // Tendril uses boosted distort + the twist values
-    const tendrilDistort = config.tendrilDistort ?? (config.distort || 0) * 2.5
-    for (const key of TWEENED_UNIFORM_KEYS) {
-      if (key === 'distort') {
-        this._tendrilShader.uniforms.distort.value = tendrilDistort
-      } else if (config[key] != null && this._tendrilShader.uniforms[key]) {
-        this._tendrilShader.uniforms[key].value = config[key]
-      }
-    }
-    // Update tendril opacity and colour
-    if (this._tendrilMesh) {
-      if (config.tendrilOpacity != null) this._tendrilMesh.material.opacity = config.tendrilOpacity
-      if (config.color) this._tendrilMesh.material.color.set(config.color)
-    }
+  _updateTendrils(config) {
+    if (!this._tendrils) return
+    this._tendrils.updateConfig(config)
   }
 
   // ------------------------------------------------------------
@@ -523,8 +461,8 @@ export class OrbScene {
       this._activeTweens.push(tween)
     }
 
-    // Tendril mesh
-    this._applyTendrilConfig(config)
+    // Tendril structures
+    this._updateTendrils(config)
 
     // Scale
     if (config.scale != null) {
