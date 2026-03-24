@@ -1,5 +1,6 @@
 // src/pages/SplashPage.jsx
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import BasePage from '../components/common/BasePage'
 import PixiBackground from '../components/splash/PixiBackground'
@@ -53,6 +54,7 @@ function Spirograph() {
 // ------------------------------------------------------------ COMPONENT
 
 export default function SplashPage() {
+  useEffect(() => { document.title = 'Ebb' }, [])
   return (
     <BasePage className={styles.splash}>
       {/* ── HEADING ── */}

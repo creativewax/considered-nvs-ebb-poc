@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom'
 import { useSleep } from '../hooks/useSleep'
 import { useOrb } from '../hooks/useOrb'
 import { useLogs } from '../hooks/useLogs'
+import { useSound } from '../hooks/useSound'
 import BasePage from '../components/common/BasePage'
 import PageLoader from '../components/common/PageLoader'
 import { ResultsHeader } from '../components/results/ResultsHeader'
@@ -23,9 +24,22 @@ export default function ResultsPage() {
   const { selectedRecord, selectRecord } = useSleep()
   const { config } = useOrb()
   const { entries, loadEntries } = useLogs()
+  const { play, stop } = useSound()
 
   useEffect(() => { selectRecord(id) }, [id])
   useEffect(() => { if (id) loadEntries(id) }, [id])
+
+  // Ambient sound — start on mount, stop on unmount
+  useEffect(() => {
+    play()
+    return () => stop()
+  }, [])
+
+  // Browser tab title
+  useEffect(() => {
+    const quality = selectedRecord?.quality
+    document.title = quality ? `Ebb — ${quality.charAt(0).toUpperCase() + quality.slice(1)} Sleep` : 'Ebb — Results'
+  }, [selectedRecord?.quality])
 
   if (!selectedRecord) return <PageLoader />
 

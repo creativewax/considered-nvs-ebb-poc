@@ -1,5 +1,6 @@
 // src/pages/HistoryPage.jsx
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import BasePage from '../components/common/BasePage'
 import HistoryCard from '../components/history/HistoryCard'
@@ -19,6 +20,8 @@ const ITEM_VARIANTS = {
 }
 
 export default function HistoryPage() {
+  useEffect(() => { document.title = 'Ebb — History' }, [])
+
   const { records } = useSleep()
 
   const sorted = records
