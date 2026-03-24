@@ -32,6 +32,9 @@ export const BLOB_SETTINGS = {
 
   // Vividness
   saturation:     1.4,    // Colour boost — 1.0 = natural, higher = richer
+
+  // Page background (#FDFCFB baked into shader — prevents iOS compositor mismatch)
+  pageBg: [0.992, 0.988, 0.984],  // #FDFCFB
 }
 
 // ------------------------------------------------------------ VERTEX SHADER
@@ -76,6 +79,7 @@ const FRAGMENT_SRC = `
   uniform float uBlendWidth;
   uniform float uDriftSpeed;
   uniform float uSaturation;
+  uniform vec3 uPageBg;
 
   #define PI 3.14159265359
   #define TWO_PI 6.28318530718
@@ -212,7 +216,10 @@ const FRAGMENT_SRC = `
     float grey = dot(colour, vec3(0.299, 0.587, 0.114));
     colour = mix(vec3(grey), colour, uSaturation);
 
-    gl_FragColor = vec4(colour, finalMask);
+    // Blend with page background — fully opaque output eliminates
+    // iOS compositor mismatch between WebGL and DOM layers
+    vec3 final = mix(uPageBg, colour, finalMask);
+    gl_FragColor = vec4(final, 1.0);
   }
 `
 
@@ -233,7 +240,8 @@ export default function PixiBackground() {
 
       await app.init({
         resizeTo: container,
-        backgroundAlpha: 0,
+        backgroundAlpha: 1,
+        backgroundColor: 0xFDFCFB,
         antialias: true,
         resolution: Math.min(window.devicePixelRatio, 2),
         autoDensity: true,
@@ -245,7 +253,6 @@ export default function PixiBackground() {
       }
 
       appRef.current = app
-      app.canvas.style.background = 'transparent'
       container.appendChild(app.canvas)
 
       const w = app.screen.width
@@ -282,6 +289,7 @@ export default function PixiBackground() {
             uBlendWidth:    { value: s.blendWidth, type: 'f32' },
             uDriftSpeed:    { value: s.driftSpeed, type: 'f32' },
             uSaturation:    { value: s.saturation, type: 'f32' },
+            uPageBg:        { value: new Float32Array(s.pageBg), type: 'vec3<f32>' },
           },
         },
       })
