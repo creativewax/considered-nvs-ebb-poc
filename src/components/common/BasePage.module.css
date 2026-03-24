@@ -6,6 +6,4 @@
   padding-top: var(--safe-top);
   position: relative;
   overflow: visible;
-  background-color: #FDFCFB;
-  background-color: var(--colour-bg);
 }

@@ -189,10 +189,6 @@ const FRAGMENT_SRC = `
   void main() {
     vec2 uv = (vTextureCoord - 0.5) * 2.0;
 
-    // Correct for aspect ratio
-    float aspect = uResolution.x / uResolution.y;
-    uv.x *= aspect;
-
     float dist = length(uv);
     float angle = atan(uv.y, uv.x);
     float t = uTime;
@@ -239,7 +235,7 @@ export default function PixiBackground() {
         resizeTo: container,
         backgroundAlpha: 0,
         antialias: true,
-        resolution: Math.min(window.devicePixelRatio, 2),
+        resolution: 1,
         autoDensity: true,
       })
 

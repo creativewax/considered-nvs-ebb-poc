@@ -188,7 +188,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  background: var(--colour-bg);
+  background: #000;
 }
 
 img, video, canvas, svg {
@@ -221,11 +221,6 @@ a {
 
 /* ── MOBILE (default) ── */
 
-#root {
-  height: 100dvh;
-  overflow-y: auto;
-}
-
 .page {
   min-height: 100%;
   padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-xl));
@@ -253,7 +248,7 @@ a {
     max-width: var(--max-width-desktop);
     height: min(100vh, var(--max-height-desktop));
     margin: auto;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-frame);
     overflow: hidden;
     position: relative;
@@ -264,18 +259,10 @@ a {
     content: '';
     position: absolute;
     inset: -1px;
-    border-radius: calc(var(--radius-lg) + 1px);
+    border-radius: calc(var(--radius-xl) + 1px);
     border: 1px solid var(--colour-border);
     pointer-events: none;
     z-index: var(--z-overlay);
-  }
-}
-
-/* ── LARGE DESKTOP: more breathing room ── */
-
-@media (min-width: 1200px) {
-  body {
-    background: #E8E8EC;
   }
 }
 
