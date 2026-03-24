@@ -50,6 +50,7 @@
 
 .legend {
   display: flex;
+  justify-content: center;
   gap: var(--space-md);
   margin-top: var(--space-sm);
   flex-wrap: wrap;
