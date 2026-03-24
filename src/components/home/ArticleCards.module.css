@@ -1,0 +1,56 @@
+/* src/components/home/ArticleCards.module.css */
+
+/* ------------------------------------------------------------ WRAPPER */
+
+.wrap {
+  margin-top: var(--space-md);
+}
+
+.heading {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--colour-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+/* ------------------------------------------------------------ LIST */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ------------------------------------------------------------ CARD */
+
+.card {
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-md);
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-xs);
+}
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--colour-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-sm);
+}
+
+.readMore {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--colour-accent);
+  cursor: pointer;
+}
