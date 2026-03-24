@@ -174,21 +174,28 @@ export class OrbScene {
         shader.uniforms[key] = { value: val }
       }
 
-      // Prepend noise and displacement functions
-      const shaderPrefix = noiseGlsl + '\n' + displacementGlsl + '\n'
-      shader.vertexShader = shaderPrefix + shader.vertexShader
+      // Check what chunks exist in the vertex shader
+      const hasBeginVertex = shader.vertexShader.includes('#include <begin_vertex>')
+      const hasBeginNormal = shader.vertexShader.includes('#include <beginnormal_vertex>')
+      console.log('[OrbScene] onBeforeCompile fired. begin_vertex:', hasBeginVertex, 'beginnormal_vertex:', hasBeginNormal)
 
-      // Replace the begin_vertex chunk to apply displacement + normal recalculation
-      // This runs AFTER defaultnormal_vertex, so we modify objectNormal via beginNormal
-      // Strategy: replace #include <begin_vertex> which sets `transformed = position`
+      // Prepend noise and displacement functions to vertex shader
+      shader.vertexShader = noiseGlsl + '\n' + displacementGlsl + '\n' + shader.vertexShader
+
+      // ── STRATEGY: replace TWO chunks ──
+      // 1. beginnormal_vertex — set objectNormal BEFORE defaultnormal uses it
+      // 2. begin_vertex — set displaced position
+
+      // Step 1: Replace beginnormal_vertex to compute displaced normal early
+      // The default chunk is: vec3 objectNormal = normal;
+      // We add our displacement + normal recalculation here
       shader.vertexShader = shader.vertexShader.replace(
-        '#include <begin_vertex>',
+        '#include <beginnormal_vertex>',
         /* glsl */ `
-          // ── CUSTOM DISPLACEMENT ──
+          // ── CUSTOM DISPLACEMENT + NORMAL ──
           vec3 displacedPosition = position + normalize(normal) * f(position);
 
-          vec3 displacedNormal = normalize(normal);
-
+          vec3 objectNormal = normal;
           if (fixNormals == 1.0) {
             float offset = 0.5 / 512.0;
             vec3 tangent = orthogonal(normal);
@@ -199,15 +206,21 @@ export class OrbScene {
             vec3 displacedNeighbour2 = neighbour2 + normal * f(neighbour2);
             vec3 displacedTangent = displacedNeighbour1 - displacedPosition;
             vec3 displacedBitangent = displacedNeighbour2 - displacedPosition;
-            displacedNormal = normalize(cross(displacedTangent, displacedBitangent));
+            objectNormal = normalize(cross(displacedTangent, displacedBitangent));
           }
-
-          vec3 transformed = displacedPosition;
-
-          // Override the normal that defaultnormal_vertex already computed
-          vNormal = normalize(normalMatrix * displacedNormal);
         `
       )
+
+      // Step 2: Replace begin_vertex to use displaced position
+      // The default chunk is: vec3 transformed = vec3( position );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        /* glsl */ `
+          vec3 transformed = displacedPosition;
+        `
+      )
+
+      console.log('[OrbScene] Shader patched successfully')
     }
 
     this._mesh = new THREE.Mesh(geometry, material)
@@ -235,20 +248,42 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initEnvironment() {
-    // Load a real studio HDRI — this is what makes blobmixer look so good.
-    // A real photograph provides naturalistic, varied reflections that
-    // programmatic lights can never match.
+    // Load a real studio HDRI — naturalistic reflections like blobmixer
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
-    new RGBELoader().load('/env/studio.hdr', (texture) => {
-      const envMap = pmrem.fromEquirectangular(texture).texture
-      this._scene.environment = envMap
-      this._mesh.material.envMap = envMap
-      this._mesh.material.needsUpdate = true
-      texture.dispose()
-      pmrem.dispose()
-    })
+    new RGBELoader().load(
+      '/env/studio.hdr',
+      (texture) => {
+        console.log('[OrbScene] HDRI loaded successfully')
+        const envMap = pmrem.fromEquirectangular(texture).texture
+        this._scene.environment = envMap
+        if (this._mesh?.material) {
+          this._mesh.material.envMap = envMap
+          this._mesh.material.needsUpdate = true
+        }
+        texture.dispose()
+        pmrem.dispose()
+      },
+      undefined,
+      (err) => {
+        console.error('[OrbScene] Failed to load HDRI:', err)
+        // Fallback: build a simple programmatic environment
+        const fallbackScene = new THREE.Scene()
+        fallbackScene.background = new THREE.Color(0x888888)
+        const l = new THREE.PointLight(0xffffff, 30, 30)
+        l.position.set(5, 5, 5)
+        fallbackScene.add(l)
+        const envMap = pmrem.fromScene(fallbackScene).texture
+        this._scene.environment = envMap
+        if (this._mesh?.material) {
+          this._mesh.material.envMap = envMap
+          this._mesh.material.needsUpdate = true
+        }
+        fallbackScene.clear()
+        pmrem.dispose()
+      }
+    )
   }
 
   // ------------------------------------------------------------
