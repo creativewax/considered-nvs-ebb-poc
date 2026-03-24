@@ -1,0 +1,64 @@
+/* src/components/history/HistoryCard.module.css */
+
+/* ------------------------------------------------------------ CARD */
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--colour-surface);
+  border: none;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  text-align: left;
+  transition: box-shadow var(--transition-fast);
+}
+
+/* ------------------------------------------------------------ BODY */
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.date {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text);
+  letter-spacing: -0.01em;
+}
+
+.quality {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------ STATS */
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.score {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--colour-text);
+  line-height: 1;
+}
+
+.duration {
+  font-size: var(--text-sm);
+  color: var(--colour-text-secondary);
+}
