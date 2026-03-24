@@ -1,6 +1,7 @@
 // src/lib/three/TendrilSystem.js
-// Metallic structures growing from the sphere surface.
-// Uses InstancedMesh with thin elongated capsules.
+// Organic structures wrapping around the sphere surface.
+// Uses InstancedMesh with small cubes arranged along curved
+// paths that spiral around the orb — not poking outward.
 
 import * as THREE from 'three'
 
@@ -10,100 +11,127 @@ export class TendrilSystem {
   constructor(scene) {
     this._scene = scene
     this._mesh = null
-    this._count = 0
+    this._pathCount = 0
+    this._totalInstances = 0
     this._dummy = new THREE.Object3D()
-    this._basePositions = []  // Surface points where tendrils grow from
-    this._baseNormals = []
     this._time = 0
+    this._paths = []  // Stored path data for animation
   }
 
   // ------------------------------------------------------------ BUILD
 
-  build(count = 60, length = 0.3, thickness = 0.01, color = '#ffffff') {
+  build(config) {
     this.dispose()
-    this._count = count
 
-    // Capsule geometry — elongated along Y
-    const geo = new THREE.CapsuleGeometry(thickness, length, 4, 8)
+    const pathCount = config.tendrilCount ?? 60
+    const cubesPerPath = 8
+    const totalInstances = pathCount * cubesPerPath
+    this._pathCount = pathCount
+    this._totalInstances = totalInstances
 
-    // Metallic material — solid, reflective
+    // Small rounded box geometry
+    const size = config.tendrilThickness ?? 0.01
+    const geo = new THREE.BoxGeometry(size * 3, size * 2, size * 3)
+    // Round the edges slightly
+    geo.computeVertexNormals()
+
+    // Metallic material matching the design
     const mat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(color),
-      roughness: 0.2,
-      metalness: 0.8,
+      color: new THREE.Color(config.lightKey ?? '#ffffff'),
+      roughness: 0.15,
+      metalness: 0.9,
       clearcoat: 1,
-      clearcoatRoughness: 0.1,
-      envMapIntensity: 3.0,
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 4.0,
     })
 
-    // Set envMap from scene if available
     if (this._scene.environment) {
       mat.envMap = this._scene.environment
     }
 
-    this._mesh = new THREE.InstancedMesh(geo, mat, count)
+    this._mesh = new THREE.InstancedMesh(geo, mat, totalInstances)
     this._mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
 
-    // Generate random points on a unit sphere surface
-    this._basePositions = []
-    this._baseNormals = []
-    for (let i = 0; i < count; i++) {
-      // Fibonacci sphere for even distribution
-      const phi = Math.acos(1 - 2 * (i + 0.5) / count)
-      const theta = Math.PI * (1 + Math.sqrt(5)) * i
+    // Generate paths — curved lines wrapping around the sphere
+    this._paths = []
+    const sphereRadius = 1.05  // Slightly above sphere surface
 
-      const x = Math.sin(phi) * Math.cos(theta)
-      const y = Math.sin(phi) * Math.sin(theta)
-      const z = Math.cos(phi)
+    for (let p = 0; p < pathCount; p++) {
+      // Random starting point on sphere
+      const phi = Math.acos(1 - 2 * Math.random())
+      const theta = Math.random() * Math.PI * 2
 
-      this._basePositions.push(new THREE.Vector3(x, y, z))
-      this._baseNormals.push(new THREE.Vector3(x, y, z).normalize())
+      // Path direction — a tangent direction along the sphere
+      const tangentAngle = Math.random() * Math.PI * 2
+      const pathLength = config.tendrilLength ?? 0.3
+
+      const pathData = {
+        startPhi: phi,
+        startTheta: theta,
+        tangentAngle,
+        pathLength,
+        noiseOffset: Math.random() * 100,  // Unique noise seed per path
+        heightVariation: 0.02 + Math.random() * 0.04,  // How far above/below surface
+        curvature: 0.5 + Math.random() * 1.5,  // How much the path curves
+      }
+      this._paths.push(pathData)
     }
 
-    this._updateInstances(length)
+    this._updateAllInstances(0)
     this._scene.add(this._mesh)
   }
 
-  // ------------------------------------------------------------ UPDATE
+  // ------------------------------------------------------------ ANIMATE
 
   update(deltaTime, config) {
-    if (!this._mesh) return
+    if (!this._mesh || !this._paths.length) return
     this._time += deltaTime
+    this._updateAllInstances(this._time)
+  }
 
-    const length = config?.tendrilLength ?? 0.3
-    const speed = config?.speed ?? 0.005
+  _updateAllInstances(time) {
+    const cubesPerPath = Math.floor(this._totalInstances / this._pathCount)
+    const sphereRadius = 1.05
+    let idx = 0
 
-    // Animate tendril positions with subtle noise-driven movement
-    for (let i = 0; i < this._count; i++) {
-      const base = this._basePositions[i]
-      const normal = this._baseNormals[i]
+    for (let p = 0; p < this._pathCount; p++) {
+      const path = this._paths[p]
 
-      // Noise-driven length variation
-      const noise = Math.sin(this._time * speed * 100 + i * 1.7) * 0.3
-        + Math.sin(this._time * speed * 60 + i * 2.3) * 0.2
-      const currentLength = length * (0.7 + noise * 0.5)
+      for (let c = 0; c < cubesPerPath; c++) {
+        const t = c / (cubesPerPath - 1)  // 0 to 1 along the path
 
-      // Position: on sphere surface + half the capsule length outward
-      const halfLen = currentLength * 0.5
-      this._dummy.position.copy(base).multiplyScalar(1.0 + halfLen)
+        // Walk along the sphere surface following a curved path
+        const progress = t * path.pathLength
+        const noisePhase = path.noiseOffset + time * 0.5
 
-      // Slight angular wobble over time
-      const wobbleX = Math.sin(this._time * speed * 40 + i * 3.1) * 0.15
-      const wobbleZ = Math.cos(this._time * speed * 35 + i * 2.7) * 0.15
-      this._dummy.position.x += wobbleX * currentLength
-      this._dummy.position.z += wobbleZ * currentLength
+        // Spiral around the sphere with noise perturbation
+        const phi = path.startPhi + Math.sin(t * path.curvature * Math.PI + noisePhase) * 0.3
+        const theta = path.startTheta + progress * 2.0 + Math.cos(t * path.curvature * 1.7 + noisePhase * 0.7) * 0.2
 
-      // Orient along the normal (point outward from sphere)
-      this._dummy.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        normal
-      )
+        // Height above sphere surface with breathing variation
+        const heightNoise = Math.sin(noisePhase * 2 + t * 4) * path.heightVariation
+        const r = sphereRadius + heightNoise + t * 0.02
 
-      // Scale Y for length variation
-      this._dummy.scale.set(1, 0.5 + currentLength * 2, 1)
+        // Convert spherical to cartesian
+        const x = r * Math.sin(phi) * Math.cos(theta)
+        const y = r * Math.cos(phi)
+        const z = r * Math.sin(phi) * Math.sin(theta)
 
-      this._dummy.updateMatrix()
-      this._mesh.setMatrixAt(i, this._dummy.matrix)
+        this._dummy.position.set(x, y, z)
+
+        // Orient cube to face outward from sphere centre
+        this._dummy.lookAt(0, 0, 0)
+        // Add some rotation variation for organic feel
+        this._dummy.rotateZ(t * 0.5 + path.noiseOffset)
+
+        // Scale: cubes get slightly smaller toward the end of the path
+        const scale = 1.0 - t * 0.3 + Math.sin(noisePhase + t * 3) * 0.15
+        this._dummy.scale.setScalar(Math.max(0.3, scale))
+
+        this._dummy.updateMatrix()
+        this._mesh.setMatrixAt(idx, this._dummy.matrix)
+        idx++
+      }
     }
 
     this._mesh.instanceMatrix.needsUpdate = true
@@ -115,37 +143,18 @@ export class TendrilSystem {
     if (!config) return
 
     const count = config.tendrilCount ?? 60
-    const length = config.tendrilLength ?? 0.3
-    const thickness = config.tendrilThickness ?? 0.01
-    const color = config.lightKey ?? config.color ?? '#ffffff'
 
-    // Rebuild if count changed
-    if (count !== this._count) {
-      this.build(count, length, thickness, color)
+    // Rebuild if count changed significantly
+    if (Math.abs(count - this._pathCount) > 5 || !this._mesh) {
+      this.build(config)
     } else if (this._mesh) {
+      // Update material colour from key light
+      const color = config.lightKey ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(color)
     }
   }
 
-  // ------------------------------------------------------------ HELPERS
-
-  _updateInstances(length) {
-    for (let i = 0; i < this._count; i++) {
-      const base = this._basePositions[i]
-      const normal = this._baseNormals[i]
-
-      const halfLen = length * 0.5
-      this._dummy.position.copy(base).multiplyScalar(1.0 + halfLen)
-      this._dummy.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        normal
-      )
-      this._dummy.scale.set(1, 1, 1)
-      this._dummy.updateMatrix()
-      this._mesh.setMatrixAt(i, this._dummy.matrix)
-    }
-    this._mesh.instanceMatrix.needsUpdate = true
-  }
+  // ------------------------------------------------------------ ENV MAP
 
   setEnvMap(envMap) {
     if (this._mesh?.material) {
@@ -154,6 +163,8 @@ export class TendrilSystem {
     }
   }
 
+  // ------------------------------------------------------------ DISPOSE
+
   dispose() {
     if (this._mesh) {
       this._scene.remove(this._mesh)
@@ -161,8 +172,8 @@ export class TendrilSystem {
       this._mesh.material.dispose()
       this._mesh = null
     }
-    this._count = 0
-    this._basePositions = []
-    this._baseNormals = []
+    this._pathCount = 0
+    this._totalInstances = 0
+    this._paths = []
   }
 }
