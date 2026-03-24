@@ -44,13 +44,8 @@ export default function SleepSummary({ inverted = false }) {
   return (
     <div className={`${styles.summary} ${inverted ? styles.inverted : ''}`}>
       <p className={styles.date}>{date}</p>
-
-      <p className={styles.qualityLabel} style={inverted ? undefined : { color: colour }}>
-        {label} Sleep
-      </p>
-
+      <p className={styles.qualityLabel} style={inverted ? undefined : { color: colour }}>{label} Sleep</p>
       <p className={styles.score}>{latest.score}</p>
-
       <p className={styles.duration}>{duration}</p>
     </div>
   )

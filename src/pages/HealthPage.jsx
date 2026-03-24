@@ -50,7 +50,6 @@ export default function HealthPage() {
   return (
     <BasePage>
       <div className="page-content">
-        <h1 className="page-title">Health</h1>
 
         {/* ---- ORB ---- */}
         <OrbCanvas config={config} quality={quality} />

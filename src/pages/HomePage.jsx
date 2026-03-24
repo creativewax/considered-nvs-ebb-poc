@@ -26,9 +26,9 @@ export default function HomePage() {
         {/* Pixi organic blob — 0.7 scale, no crop */}
         <div style={{
           position: 'absolute',
-          width: '400px',
-          height: '400px',
-          top: '50%',
+          width: '1200px',
+          height: '800px',
+          top: '-25%',
           left: '50%',
           transform: 'translate(-50%, -50%) scale(0.7)',
           pointerEvents: 'none',

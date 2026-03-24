@@ -31,10 +31,9 @@ export default function HistoryPage() {
 
   return (
     <BasePage>
-      <AnimatedGradient />
+      <AnimatedGradient fadeToWhite={false} />
       <div className="page-content" style={{ position: 'relative', zIndex: 1 }}>
         <h1 className="page-title">History</h1>
-
         {sorted.length === 0 ? (
           <p className="empty-state">Connect your wearable to see sleep history</p>
         ) : (

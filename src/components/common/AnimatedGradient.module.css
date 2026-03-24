@@ -1,30 +1,40 @@
 /* src/components/common/AnimatedGradient.module.css */
 
-.gradient {
+@property --ebb-gradient-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 135deg;
+}
+
+.gradient, .gradientFade {
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
-/* Colour layer — the animated gradient using the pixi palette */
-.gradient::before {
+/* Colour layer — animated angle + drift + “scale” via background-size */
+.gradient::before, .gradientFade::before {
   content: '';
   position: absolute;
   inset: 0;
+  --ebb-gradient-angle: 135deg;
   background: linear-gradient(
-    135deg,
-    rgba(62, 58, 110, 0.18) 0%,       /* #3E3A6E — purple/indigo */
-    rgba(235, 170, 78, 0.15) 35%,      /* #EBAA4E — gold */
-    rgba(230, 111, 101, 0.14) 65%,     /* #E66F65 — coral */
-    rgba(62, 58, 110, 0.10) 100%
+    var(--ebb-gradient-angle),
+    rgba(62, 58, 110, 0.25) 0%,       /* #3E3A6E — purple/indigo */
+    rgba(235, 170, 78, 0.25) 35%,      /* #EBAA4E — gold */
+    rgba(230, 111, 101, 0.25) 65%,     /* #E66F65 — coral */
+    rgba(62, 58, 110, 0.25) 100%
   );
   background-size: 300% 300%;
-  animation: gradientShift 12s ease-in-out infinite alternate;
+  animation:
+    gradientShift 6s ease-in-out infinite alternate,
+    gradientAngleSpin 30s linear infinite;
 }
 
 /* Fade-to-white layer — top 50% fades from white to transparent */
-.gradient::after {
+.gradientFade::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -39,11 +49,23 @@
 @keyframes gradientShift {
   0% {
     background-position: 0% 0%;
+    background-size: 150% 150%;
   }
   50% {
     background-position: 100% 50%;
+    background-size: 200% 200%;
   }
   100% {
     background-position: 50% 100%;
+    background-size: 150% 150%;
+  }
+}
+
+@keyframes gradientAngleSpin {
+  from {
+    --ebb-gradient-angle: 135deg;
+  }
+  to {
+    --ebb-gradient-angle: 495deg;
   }
 }
