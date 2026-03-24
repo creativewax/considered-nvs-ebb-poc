@@ -40,11 +40,6 @@ export default function HomeAnimation() {
 
       {/* SPIROGRAPH */}
       <Spirograph />
-
-      {/* CENTRAL LOGO */}
-      <div className={styles.logoWrap}>
-        <span className={`${styles.logo} animate-breathe`}>ebb</span>
-      </div>
     </div>
   )
 }
