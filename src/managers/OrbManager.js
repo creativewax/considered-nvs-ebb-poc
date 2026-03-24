@@ -4,9 +4,83 @@ import BaseManager from './BaseManager.js'
 import { EVENTS } from '../constants/events.js'
 import { QUALITY_COLOURS } from '../constants/colours.js'
 
-// ------------------------------------------------------------
-// ORB MANAGER — maps sleep record metrics to Three.js orb config
-// ------------------------------------------------------------
+// ------------------------------------------------------------ ORB PRESETS
+// Each quality has a UNIQUE CHARACTER — not just "more chaos".
+// Inspired by blobmixer's approach: distinct combinations of
+// goo distortion, surface waves, wave count, and material properties
+// create totally different visual personalities.
+
+const ORB_PRESETS = {
+  // ── EXCELLENT: near-perfect sphere, glass-like, serene ──
+  // Barely deformed, high transmission, very smooth. Like a crystal ball.
+  excellent: {
+    distort:           0.08,
+    frequency:         3.0,
+    surfaceDistort:    0.02,
+    surfaceFrequency:  4.0,
+    speed:             0.002,
+    surfaceSpeed:      0.001,
+    numberOfWaves:     3.0,
+    roughness:         0.05,
+    clearcoat:         1.0,
+    clearcoatRoughness: 0.2,
+    envMapIntensity:   1.5,
+    transmission:      0.4,
+  },
+
+  // ── GOOD: gentle organic undulations, flowing tendrils ──
+  // Smooth flowing surface with graceful wave patterns. Calm and alive.
+  good: {
+    distort:           0.25,
+    frequency:         2.0,
+    surfaceDistort:    0.08,
+    surfaceFrequency:  2.5,
+    speed:             0.004,
+    surfaceSpeed:      0.002,
+    numberOfWaves:     5.0,
+    roughness:         0.12,
+    clearcoat:         1.0,
+    clearcoatRoughness: 0.5,
+    envMapIntensity:   1.2,
+    transmission:      0.15,
+  },
+
+  // ── FAIR: visible deformation, some turbulence ──
+  // Twisted surface with ridge-like waves. Unsettled but still coherent.
+  fair: {
+    distort:           0.5,
+    frequency:         1.5,
+    surfaceDistort:    0.25,
+    surfaceFrequency:  1.8,
+    speed:             0.006,
+    surfaceSpeed:      0.004,
+    numberOfWaves:     8.0,      // More wave ridges — creates unique texture
+    roughness:         0.2,
+    clearcoat:         0.8,
+    clearcoatRoughness: 0.6,
+    envMapIntensity:   1.0,
+    transmission:      0,
+  },
+
+  // ── POOR: chaotic, heavily distorted, agitated ──
+  // Extreme deformation, fast movement, spiky ridges. Visual distress.
+  poor: {
+    distort:           0.85,
+    frequency:         1.0,      // Low frequency = large blobby bulges
+    surfaceDistort:    0.45,
+    surfaceFrequency:  1.2,
+    speed:             0.01,
+    surfaceSpeed:      0.007,
+    numberOfWaves:     12.0,     // Many ridges — chaotic surface texture
+    roughness:         0.35,
+    clearcoat:         0.5,
+    clearcoatRoughness: 0.9,
+    envMapIntensity:   0.7,
+    transmission:      0,
+  },
+}
+
+// ------------------------------------------------------------ ORB MANAGER
 
 class OrbManager extends BaseManager {
   constructor() {
@@ -22,61 +96,23 @@ class OrbManager extends BaseManager {
     })
   }
 
-  // ------------------------------------------------------------
-  // CONFIG CALCULATION
-  // ------------------------------------------------------------
+  // ------------------------------------------------------------ CONFIG
 
   _calculateConfig(record) {
-    const { score, quality, deepSleep, remSleep, sleepDuration, awakeTime, avgHeartRate, hrv } = record
-    const totalStages = record.lightSleep + record.deepSleep + record.remSleep
-    const deepPct = totalStages > 0 ? deepSleep / totalStages : 0
-    const remPct  = totalStages > 0 ? remSleep  / totalStages : 0
-
-    // 0 (worst) → 1 (best)
-    const normalised = score / 100
+    const { quality } = record
+    const preset = ORB_PRESETS[quality] || ORB_PRESETS.good
 
     return {
-      // Displacement — more chaotic as score drops
-      distort:          0.05 + (1 - normalised) * 0.55,
-      frequency:        1.5  + normalised * 1.5,
-      surfaceDistort:   0.02 + (1 - normalised) * 0.28,
-      speed:            0.002 + (1 - normalised) * 0.006,
-      surfaceSpeed:     0.001 + (1 - normalised) * 0.004,
-
-      // Material
-      roughness:          0.1 + (1 - normalised) * 0.25,
-      clearcoat:          0.6 + normalised * 0.4,
-      clearcoatRoughness: 0.4 + (1 - normalised) * 0.5,
-      envMapIntensity:    0.8 + normalised * 0.4,
-      // Slight translucency only for good sleep scores
-      transmission: normalised > 0.7 ? (normalised - 0.7) * 1.0 : 0,
-
-      // Colour
+      ...preset,
       quality,
       colours: QUALITY_COLOURS[quality],
-
-      // Scale — larger for longer sleep, target is 8h (480 min)
-      scale: 0.8 + Math.min(sleepDuration / 480, 1) * 0.4,
-
-      // Tendrils — more REM = more tendrils
-      tendrilCount: Math.round(remPct * 30),
-      tendrilChaos: 1 - normalised,
-
-      // Pulse — derived from heart rate and HRV
-      pulseRate:      avgHeartRate ? 60 / avgHeartRate : 1.0,
-      movementSmooth: hrv ? Math.min(hrv / 60, 1) : 0.5,
-
-      // CSU surface effect — updated when log entries are checked
-      csuSeverity: 0,
     }
   }
 }
 
 export const orbManager = new OrbManager()
 
-// ------------------------------------------------------------
-// HMR
-// ------------------------------------------------------------
+// ------------------------------------------------------------ HMR
 
 if (import.meta.hot) {
   import.meta.hot.dispose(() => orbManager._cleanupEvents())

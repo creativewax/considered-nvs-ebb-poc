@@ -260,8 +260,10 @@ export class OrbScene {
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
+    // Outdoor/natural HDRI — irregular detail (sky, horizon, bright spots)
+    // creates varied, crisp reflections like blobmixer's photograph
     new RGBELoader().load(
-      '/env/studio.hdr',
+      '/env/outdoor.hdr',
       (texture) => {
         // Guard: scene may have been disposed if React unmounted during load
         if (!this._scene || !this._mesh) {
@@ -329,6 +331,9 @@ export class OrbScene {
 
     const toneMapping = new ToneMappingEffect({
       mode: THREE.ACESFilmicToneMapping,
+      resolution: 256,
+      whitePoint: 8.0,      // Brighter white point to prevent darkness
+      middleGrey: 0.6,      // Lift the midtones
     })
 
     composer.addPass(new EffectPass(this._camera, bloom, toneMapping))
