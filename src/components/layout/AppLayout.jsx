@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import BottomNav from './BottomNav'
 import DesktopKeyline from './DesktopKeyline'
+import AddSheet from '../add/AddSheet'
 import { ROUTES } from '../../constants/routes'
 import styles from './AppLayout.module.css'
 
@@ -22,6 +24,11 @@ export default function AppLayout() {
         splashMode={isSplash}
       />
       <DesktopKeyline />
+      <AnimatePresence>
+        {sheetOpen && !isSplash && (
+          <AddSheet onClose={() => setSheetOpen(false)} />
+        )}
+      </AnimatePresence>
     </>
   )
 }
