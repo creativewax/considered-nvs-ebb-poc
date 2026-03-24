@@ -1,0 +1,75 @@
+/* src/components/results/ExpandableStats.module.css */
+
+.wrapper {
+  padding-top: var(--space-sm);
+}
+
+/* Heart rate stat rows */
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  font-size: var(--text-sm);
+}
+
+.statLabel {
+  color: var(--colour-text-secondary);
+}
+
+.statValue {
+  font-weight: var(--weight-medium);
+}
+
+/* HRV display */
+.hrvDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  padding: var(--space-sm) 0;
+}
+
+.hrvValue {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+}
+
+.hrvUnit {
+  font-size: var(--text-sm);
+  color: var(--colour-text-secondary);
+}
+
+.hrvNote {
+  font-size: var(--text-xs);
+  color: var(--colour-text-muted);
+  line-height: var(--leading-relaxed);
+  margin-top: var(--space-xs);
+}
+
+/* Log entries */
+.logList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.logItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logType {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--colour-text-muted);
+}
+
+.logContent {
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+  line-height: var(--leading-relaxed);
+}

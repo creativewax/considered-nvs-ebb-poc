@@ -1,0 +1,33 @@
+/* src/components/results/InsightCards.module.css */
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md) 0;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--colour-text);
+  background: var(--colour-border-subtle);
+}
+
+.poor      { background: var(--colour-poor-bg); }
+.fair      { background: var(--colour-fair-bg); }
+.good      { background: var(--colour-good-bg); }
+.excellent { background: var(--colour-excellent-bg); }
+
+.icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  color: var(--colour-text-secondary);
+}
