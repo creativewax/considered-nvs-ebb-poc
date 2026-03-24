@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import BasePage from '../components/common/BasePage'
 import PixiBackground from '../components/splash/PixiBackground'
 import AnimatedGradient from '../components/common/AnimatedGradient'
-import HomeAnimation from '../components/home/HomeAnimation'
 import SleepSummary from '../components/home/SleepSummary'
 import TrendCards from '../components/home/TrendCards'
 import QuickLinks from '../components/home/QuickLinks'
@@ -27,15 +26,14 @@ export default function HomePage() {
         {/* Pixi organic blob — 0.7 scale, no crop */}
         <div style={{
           position: 'absolute',
-          width: '500px',
-          height: '500px',
+          width: '400px',
+          height: '400px',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%) scale(0.7)',
           pointerEvents: 'none',
         }}>
           <PixiBackground />
-          <HomeAnimation />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
