@@ -1,0 +1,414 @@
+// src/lib/three/OrbScene.js
+
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { EffectComposer, RenderPass, EffectPass, BloomEffect, VignetteEffect } from 'postprocessing'
+import { gsap } from 'gsap'
+import noiseGlsl from './shaders/noise.glsl?raw'
+import displacementGlsl from './shaders/displacement.glsl?raw'
+
+// ------------------------------------------------------------
+// ORB SCENE — full Three.js lifecycle for the sleep orb
+// ------------------------------------------------------------
+
+const DEFAULT_UNIFORMS = {
+  time:              0,
+  distort:           0.4,
+  frequency:         2.0,
+  surfaceDistort:    0.1,
+  surfaceFrequency:  3.0,
+  surfaceTime:       0,
+  numberOfWaves:     5.0,
+  fixNormals:        1.0,
+  surfacePoleAmount: 1.0,
+  gooPoleAmount:     1.0,
+}
+
+const TWEENED_UNIFORM_KEYS = [
+  'distort', 'frequency', 'surfaceDistort', 'surfaceFrequency', 'numberOfWaves',
+]
+
+const TWEENED_MATERIAL_KEYS = [
+  'roughness', 'clearcoat', 'clearcoatRoughness', 'envMapIntensity', 'transmission',
+]
+
+export class OrbScene {
+  constructor() {
+    this._renderer = null
+    this._scene = null
+    this._camera = null
+    this._controls = null
+    this._composer = null
+    this._mesh = null
+    this._shader = null
+    this._rafId = null
+    this._speed = 0.005
+    this._surfaceSpeed = 0.003
+    this._container = null
+    this._activeTweens = []
+  }
+
+  // ------------------------------------------------------------
+  // LIFECYCLE
+  // ------------------------------------------------------------
+
+  mount(container) {
+    this._container = container
+    const { width, height } = container.getBoundingClientRect()
+
+    this._initRenderer(width, height)
+    this._initScene()
+    this._initCamera(width, height)
+    this._initGeometryAndMaterial()
+    this._initLights()
+    this._initEnvironment()
+    this._initControls()
+    this._initPostProcessing()
+
+    container.appendChild(this._renderer.domElement)
+    this._animate()
+  }
+
+  unmount() {
+    if (this._rafId) cancelAnimationFrame(this._rafId)
+    this._rafId = null
+    this._killTweens()
+    this._controls?.dispose()
+    this._composer?.dispose()
+    this._renderer?.domElement?.remove()
+    this.dispose()
+  }
+
+  dispose() {
+    this._mesh?.geometry?.dispose()
+    this._mesh?.material?.dispose()
+    this._renderer?.dispose()
+    this._scene = null
+    this._camera = null
+    this._renderer = null
+    this._composer = null
+    this._mesh = null
+    this._shader = null
+    this._container = null
+  }
+
+  resize() {
+    if (!this._container || !this._renderer) return
+    const { width, height } = this._container.getBoundingClientRect()
+    this._camera.aspect = width / height
+    this._camera.updateProjectionMatrix()
+    this._renderer.setSize(width, height)
+    this._composer.setSize(width, height)
+  }
+
+  // ------------------------------------------------------------
+  // RENDERER
+  // ------------------------------------------------------------
+
+  _initRenderer(width, height) {
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    })
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.0
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    renderer.setSize(width, height)
+    this._renderer = renderer
+  }
+
+  // ------------------------------------------------------------
+  // SCENE
+  // ------------------------------------------------------------
+
+  _initScene() {
+    this._scene = new THREE.Scene()
+  }
+
+  // ------------------------------------------------------------
+  // CAMERA
+  // ------------------------------------------------------------
+
+  _initCamera(width, height) {
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
+    camera.position.set(0, 0, 4)
+    this._camera = camera
+  }
+
+  // ------------------------------------------------------------
+  // GEOMETRY + MATERIAL (onBeforeCompile shader injection)
+  // ------------------------------------------------------------
+
+  _initGeometryAndMaterial() {
+    const geometry = new THREE.SphereGeometry(1, 256, 256)
+
+    const material = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      roughness: 0.14,
+      metalness: 0,
+      clearcoat: 1,
+      clearcoatRoughness: 0.7,
+      envMapIntensity: 1.0,
+    })
+
+    // Shader injection — prepend noise + displacement, replace vertex chunks
+    material.onBeforeCompile = (shader) => {
+      this._shader = shader
+
+      // Add custom uniforms
+      for (const [key, val] of Object.entries(DEFAULT_UNIFORMS)) {
+        shader.uniforms[key] = { value: val }
+      }
+
+      // Prepend noise and displacement to vertex shader
+      const shaderPrefix = noiseGlsl + '\n' + displacementGlsl + '\n'
+      shader.vertexShader = shaderPrefix + shader.vertexShader
+
+      // Replace displacement map chunk with custom displacement + normal recalculation
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <displacementmap_vertex>',
+        /* glsl */ `
+          vec3 displacedPosition = position + normalize(normal) * f(position);
+
+          vec3 displacedNormal = normalize(normal);
+
+          if (fixNormals == 1.0) {
+            float offset = 0.5 / 512.0;
+            vec3 tangent = orthogonal(normal);
+            vec3 bitangent = normalize(cross(normal, tangent));
+            vec3 neighbour1 = position + tangent * offset;
+            vec3 neighbour2 = position + bitangent * offset;
+            vec3 displacedNeighbour1 = neighbour1 + normal * f(neighbour1);
+            vec3 displacedNeighbour2 = neighbour2 + normal * f(neighbour2);
+            vec3 displacedTangent = displacedNeighbour1 - displacedPosition;
+            vec3 displacedBitangent = displacedNeighbour2 - displacedPosition;
+            displacedNormal = normalize(cross(displacedTangent, displacedBitangent));
+          }
+
+          transformed = displacedPosition;
+        `
+      )
+
+      // Replace default normal to use our recalculated normal
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <defaultnormal_vertex>',
+        /* glsl */ `
+          vec3 transformedNormal = displacedNormal;
+          #ifdef USE_INSTANCING
+            mat3 m = mat3(instanceMatrix);
+            transformedNormal /= vec3(dot(m[0], m[0]), dot(m[1], m[1]), dot(m[2], m[2]));
+            transformedNormal = m * transformedNormal;
+          #endif
+          transformedNormal = normalMatrix * transformedNormal;
+          #ifdef FLIP_SIDED
+            transformedNormal = -transformedNormal;
+          #endif
+          #ifdef USE_TANGENT
+            vec3 transformedTangent = (modelViewMatrix * vec4(objectTangent, 0.0)).xyz;
+            #ifdef FLIP_SIDED
+              transformedTangent = -transformedTangent;
+            #endif
+          #endif
+        `
+      )
+    }
+
+    this._mesh = new THREE.Mesh(geometry, material)
+    this._scene.add(this._mesh)
+  }
+
+  // ------------------------------------------------------------
+  // LIGHTS
+  // ------------------------------------------------------------
+
+  _initLights() {
+    const ambient = new THREE.AmbientLight(0xffffff, 0.2)
+    this._scene.add(ambient)
+
+    const spot = new THREE.SpotLight(0xffffff, 0.5)
+    spot.position.set(3, 3, 3)
+    spot.angle = Math.PI / 4
+    spot.penumbra = 1
+    spot.decay = 0.5
+    this._scene.add(spot)
+  }
+
+  // ------------------------------------------------------------
+  // ENVIRONMENT MAP (programmatic — replaced with HDRI later)
+  // ------------------------------------------------------------
+
+  _initEnvironment() {
+    const pmrem = new THREE.PMREMGenerator(this._renderer)
+    pmrem.compileEquirectangularShader()
+
+    // Build a simple environment scene with coloured lights
+    const envScene = new THREE.Scene()
+    envScene.background = new THREE.Color(0x1a1a2e)
+
+    const light1 = new THREE.PointLight(0x44aec6, 8, 20)
+    light1.position.set(5, 5, 5)
+    envScene.add(light1)
+
+    const light2 = new THREE.PointLight(0x3daa7a, 6, 20)
+    light2.position.set(-5, 3, -5)
+    envScene.add(light2)
+
+    const light3 = new THREE.PointLight(0xe8dcc8, 4, 20)
+    light3.position.set(0, -5, 5)
+    envScene.add(light3)
+
+    const envMap = pmrem.fromScene(envScene, 0, 0.1, 100).texture
+    this._scene.environment = envMap
+    this._mesh.material.envMap = envMap
+    this._mesh.material.needsUpdate = true
+
+    envScene.clear()
+    pmrem.dispose()
+  }
+
+  // ------------------------------------------------------------
+  // ORBIT CONTROLS
+  // ------------------------------------------------------------
+
+  _initControls() {
+    const controls = new OrbitControls(this._camera, this._renderer.domElement)
+    controls.enableDamping = true
+    controls.dampingFactor = 0.05
+    controls.enablePan = false
+    controls.enableZoom = false
+    controls.autoRotate = true
+    controls.autoRotateSpeed = 1.0
+    this._controls = controls
+  }
+
+  // ------------------------------------------------------------
+  // POST-PROCESSING
+  // ------------------------------------------------------------
+
+  _initPostProcessing() {
+    const composer = new EffectComposer(this._renderer)
+    composer.addPass(new RenderPass(this._scene, this._camera))
+
+    const bloom = new BloomEffect({
+      luminanceThreshold: 0.15,
+      luminanceSmoothing: 0.5,
+      intensity: 0.4,
+    })
+
+    const vignette = new VignetteEffect({
+      offset: 0.6,
+      darkness: 0.25,
+    })
+
+    composer.addPass(new EffectPass(this._camera, bloom, vignette))
+    this._composer = composer
+  }
+
+  // ------------------------------------------------------------
+  // ANIMATION LOOP
+  // ------------------------------------------------------------
+
+  _animate = () => {
+    this._rafId = requestAnimationFrame(this._animate)
+
+    if (this._shader) {
+      this._shader.uniforms.time.value += this._speed
+      this._shader.uniforms.surfaceTime.value += this._surfaceSpeed
+    }
+
+    this._controls?.update()
+    this._composer.render()
+  }
+
+  // ------------------------------------------------------------
+  // CONFIG UPDATE — tween uniforms + material for smooth transitions
+  // ------------------------------------------------------------
+
+  updateConfig(config) {
+    if (!config || !this._mesh) return
+
+    this._killTweens()
+
+    // Speed values are set directly (not tweened)
+    if (config.speed != null) this._speed = config.speed
+    if (config.surfaceSpeed != null) this._surfaceSpeed = config.surfaceSpeed
+
+    // Tween uniforms
+    if (this._shader) {
+      const uniformTarget = {}
+      for (const key of TWEENED_UNIFORM_KEYS) {
+        if (config[key] != null) uniformTarget[key] = config[key]
+      }
+
+      if (Object.keys(uniformTarget).length) {
+        // Build a proxy object with current values
+        const current = {}
+        for (const key of Object.keys(uniformTarget)) {
+          current[key] = this._shader.uniforms[key]?.value ?? 0
+        }
+
+        const tween = gsap.to(current, {
+          ...uniformTarget,
+          duration: 0.8,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            for (const key of Object.keys(uniformTarget)) {
+              if (this._shader?.uniforms[key]) {
+                this._shader.uniforms[key].value = current[key]
+              }
+            }
+          },
+        })
+        this._activeTweens.push(tween)
+      }
+    }
+
+    // Tween material properties
+    const mat = this._mesh.material
+    const matTarget = {}
+    for (const key of TWEENED_MATERIAL_KEYS) {
+      if (config[key] != null) matTarget[key] = config[key]
+    }
+
+    if (Object.keys(matTarget).length) {
+      const tween = gsap.to(mat, {
+        ...matTarget,
+        duration: 0.8,
+        ease: 'power2.inOut',
+      })
+      this._activeTweens.push(tween)
+    }
+
+    // Colour — tween the material colour to the quality primary
+    if (config.colours?.primary) {
+      const targetCol = new THREE.Color(config.colours.primary)
+      const tween = gsap.to(mat.color, {
+        r: targetCol.r,
+        g: targetCol.g,
+        b: targetCol.b,
+        duration: 0.8,
+        ease: 'power2.inOut',
+      })
+      this._activeTweens.push(tween)
+    }
+
+    // Scale
+    if (config.scale != null) {
+      const tween = gsap.to(this._mesh.scale, {
+        x: config.scale,
+        y: config.scale,
+        z: config.scale,
+        duration: 0.8,
+        ease: 'power2.inOut',
+      })
+      this._activeTweens.push(tween)
+    }
+  }
+
+  _killTweens() {
+    this._activeTweens.forEach((t) => t.kill())
+    this._activeTweens = []
+  }
+}
