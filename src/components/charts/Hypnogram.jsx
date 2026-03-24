@@ -15,7 +15,7 @@ const PADDING_LEFT = 6
 const PADDING_RIGHT = 6
 const PADDING_TOP = 8
 const PADDING_BOTTOM = 8
-const LINE_WIDTH = 8
+const LINE_WIDTH = 6
 const CONNECTOR_COLOUR = 'rgba(174, 174, 178, 0.3)'
 const REVEAL_DURATION = 1500
 
