@@ -77,8 +77,12 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
       if (i < tl.length - 1) {
         const nextY = yForStage(tl[i + 1].stage)
         if (nextY !== y) {
-          ctx.strokeStyle = CONNECTOR_COLOUR
-          ctx.lineWidth = 1.5
+          // Gradient connector blending from current stage colour to next
+          const grad = ctx.createLinearGradient(x2, y, x2, nextY)
+          grad.addColorStop(0, STAGE_COLOURS[seg.stage])
+          grad.addColorStop(1, STAGE_COLOURS[timeline[i + 1].stage])
+          ctx.strokeStyle = grad
+          ctx.lineWidth = 3
           ctx.beginPath()
           ctx.moveTo(x2, y)
           ctx.lineTo(x2, nextY)
