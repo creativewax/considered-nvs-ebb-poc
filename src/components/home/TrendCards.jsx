@@ -64,17 +64,17 @@ export default function TrendCards() {
   return (
     <div className={styles.wrap}>
       {/* ── AVERAGE SCORE ── */}
-      <div className={styles.card}>
+      <div className={`${styles.card} ${styles.cardAvg}`}>
         <div className={styles.cardHeader}>
-          <BarChart3 size={14} className={styles.cardIcon} />
+          <BarChart3 size={14} className={styles.cardIcon} style={{ color: 'var(--colour-good)' }} />
           <span className={styles.cardLabel}>7-Day Average</span>
         </div>
-        <p className={styles.cardValue}>{avgScore}</p>
+        <p className={styles.cardValue} style={{ color: 'var(--colour-good)' }}>{avgScore}</p>
         <p className={styles.cardDesc}>out of 100</p>
       </div>
 
       {/* ── WEEKLY TREND ── */}
-      <div className={styles.card}>
+      <div className={`${styles.card} ${styles.cardTrend}`}>
         <div className={styles.cardHeader}>
           <span className={styles.cardIcon} style={{ color: trendColour }}>{trendIcon}</span>
           <span className={styles.cardLabel}>Weekly Trend</span>
