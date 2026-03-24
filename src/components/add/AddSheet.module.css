@@ -14,10 +14,9 @@
 .sheet {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: 100%;
-  max-width: var(--max-width-desktop);
   max-height: 85dvh;
   background: var(--colour-nav-bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -27,6 +26,25 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* ------------------------------------------------------------ DESKTOP OVERRIDE */
+/* Inside the phone frame, use absolute positioning so the sheet stays contained */
+
+@media (min-width: 768px) {
+  .backdrop {
+    position: absolute;
+    inset: 0;
+  }
+
+  .sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* ------------------------------------------------------------ HANDLE */

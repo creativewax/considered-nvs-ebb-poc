@@ -9,9 +9,9 @@ import styles from './BottomNav.module.css'
 
 const NAV_ITEMS = [
   { icon: Home,     label: 'Home',     path: ROUTES.HOME    },
-  { icon: Clock,    label: 'History',  path: ROUTES.HISTORY },
-  { icon: null,     label: 'Add',      path: null           },
   { icon: Heart,    label: 'Health',   path: ROUTES.HEALTH  },
+  { icon: null,     label: 'Add',      path: null           },
+  { icon: Clock,    label: 'History',  path: ROUTES.HISTORY },
   { icon: Settings, label: 'Settings', path: ROUTES.PROFILE },
 ]
 
