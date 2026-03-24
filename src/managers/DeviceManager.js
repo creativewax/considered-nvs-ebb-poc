@@ -11,7 +11,7 @@ import { EVENTS } from '../constants/events.js'
 class DeviceManager extends BaseManager {
   constructor() {
     super()
-    this._state = { connected: false, syncing: false, syncProgress: 0, lastSync: null }
+    this._state = { connected: true, syncing: false, syncProgress: 0, lastSync: new Date(Date.now() - 120000) }
     this._syncInterval = null
 
     this._onEvent(EVENTS.DEVICE_SYNC_REQUESTED, () => this.requestSync())

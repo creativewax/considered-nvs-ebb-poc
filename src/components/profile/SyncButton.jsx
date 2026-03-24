@@ -15,12 +15,12 @@ export default function SyncButton() {
       className={styles.button}
       onClick={requestSync}
       disabled={syncing}
-      aria-label={syncing ? `Syncing — ${syncProgress ?? 0}%` : 'Sync Now'}
+      aria-label={syncing ? `Syncing — ${Math.ceil(syncProgress ?? 0)}%` : 'Sync Now'}
     >
       {syncing ? (
         <>
           <span className={styles.spinner} aria-hidden="true" />
-          <span>{syncProgress ?? 0}%</span>
+          <span>{Math.ceil(syncProgress ?? 0)}%</span>
         </>
       ) : (
         'Sync Now'

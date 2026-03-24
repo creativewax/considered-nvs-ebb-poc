@@ -3,9 +3,11 @@
 import styles from './Settings.module.css'
 
 // ------------------------------------------------------------ SETTINGS
-// Static settings display — sleep target + about section.
+// Static settings display — sleep target, stats, and about section.
 
-export default function Settings() {
+export default function Settings({ stats = {} }) {
+  const { avgScore = 0, totalNights = 0, csuCount = 0 } = stats
+
   return (
     <div className={styles.settings}>
 
@@ -13,8 +15,29 @@ export default function Settings() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Preferences</h2>
         <div className={styles.row}>
-          <span className={styles.label}>Sleep Target</span>
-          <span className={styles.value}>8h</span>
+          <span className={styles.label}>Sleep Goal</span>
+          <span className={styles.value}>8 hours</span>
+        </div>
+      </section>
+
+      {/* ---- STATS ---- */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Statistics</h2>
+        <div className={styles.row}>
+          <span className={styles.label}>Average Score (last 7 days)</span>
+          <span className={styles.value}>{avgScore}</span>
+        </div>
+        <div className={styles.row}>
+          <span className={styles.label}>Total Nights Tracked</span>
+          <span className={styles.value}>{totalNights}</span>
+        </div>
+        <div className={styles.row}>
+          <span className={styles.label}>CSU Triggers Logged</span>
+          <span className={styles.value}>{csuCount}</span>
+        </div>
+        <div className={styles.row}>
+          <span className={styles.label}>Streak</span>
+          <span className={styles.value}>4 nights tracked</span>
         </div>
       </section>
 
