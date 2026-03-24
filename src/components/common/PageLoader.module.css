@@ -1,0 +1,22 @@
+/* src/components/common/PageLoader.module.css */
+
+/* ------------------------------------------------------------ LOADER WRAP */
+
+.wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  width: 100%;
+}
+
+/* ------------------------------------------------------------ SPINNER DOT */
+
+.dot {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--colour-accent);
+  border-top-color: transparent;
+}
