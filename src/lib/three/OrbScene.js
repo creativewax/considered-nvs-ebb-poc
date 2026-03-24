@@ -167,6 +167,10 @@ export class OrbScene {
       reflectivity: 0.5,
     })
 
+    // CRITICAL: force Three.js to compile OUR modified shader instead of
+    // reusing a cached program for standard MeshPhysicalMaterial
+    material.customProgramCacheKey = () => 'ebb-orb-displacement'
+
     // Shader injection — prepend noise + displacement, replace vertex chunks
     material.onBeforeCompile = (shader) => {
       this._shader = shader
