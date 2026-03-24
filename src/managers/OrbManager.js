@@ -12,70 +12,70 @@ import { QUALITY_COLOURS } from '../constants/colours.js'
 
 const ORB_PRESETS = {
   // ── EXCELLENT: near-perfect sphere, glass-like, serene ──
-  // Barely deformed, high transmission, very smooth. Like a crystal ball.
+  // Barely deformed. You can still see it's a sphere. Crystal ball feel.
   excellent: {
-    distort:           0.08,
+    distort:           0.06,
     frequency:         3.0,
-    surfaceDistort:    0.02,
+    surfaceDistort:    0.01,
     surfaceFrequency:  4.0,
     speed:             0.002,
     surfaceSpeed:      0.001,
     numberOfWaves:     3.0,
     roughness:         0.05,
     clearcoat:         1.0,
-    clearcoatRoughness: 0.2,
-    envMapIntensity:   1.5,
-    transmission:      0.4,
+    clearcoatRoughness: 0.15,
+    envMapIntensity:   1.8,
+    transmission:      0.3,
   },
 
-  // ── GOOD: gentle organic undulations, flowing tendrils ──
-  // Smooth flowing surface with graceful wave patterns. Calm and alive.
+  // ── GOOD: gentle organic undulations ──
+  // Clearly a sphere with soft organic bumps. Calm, flowing.
   good: {
-    distort:           0.25,
-    frequency:         2.0,
-    surfaceDistort:    0.08,
-    surfaceFrequency:  2.5,
-    speed:             0.004,
+    distort:           0.18,
+    frequency:         2.2,
+    surfaceDistort:    0.05,
+    surfaceFrequency:  3.0,
+    speed:             0.003,
     surfaceSpeed:      0.002,
-    numberOfWaves:     5.0,
-    roughness:         0.12,
+    numberOfWaves:     4.0,
+    roughness:         0.1,
     clearcoat:         1.0,
-    clearcoatRoughness: 0.5,
-    envMapIntensity:   1.2,
-    transmission:      0.15,
+    clearcoatRoughness: 0.4,
+    envMapIntensity:   1.5,
+    transmission:      0.1,
   },
 
-  // ── FAIR: visible deformation, some turbulence ──
-  // Twisted surface with ridge-like waves. Unsettled but still coherent.
+  // ── FAIR: noticeable deformation, surface ridges ──
+  // Still spherical but clearly disturbed. Wave ridges create texture.
   fair: {
-    distort:           0.5,
-    frequency:         1.5,
-    surfaceDistort:    0.25,
-    surfaceFrequency:  1.8,
-    speed:             0.006,
-    surfaceSpeed:      0.004,
-    numberOfWaves:     8.0,      // More wave ridges — creates unique texture
-    roughness:         0.2,
-    clearcoat:         0.8,
-    clearcoatRoughness: 0.6,
-    envMapIntensity:   1.0,
+    distort:           0.35,
+    frequency:         1.8,
+    surfaceDistort:    0.15,
+    surfaceFrequency:  2.0,
+    speed:             0.005,
+    surfaceSpeed:      0.003,
+    numberOfWaves:     7.0,
+    roughness:         0.18,
+    clearcoat:         0.85,
+    clearcoatRoughness: 0.55,
+    envMapIntensity:   1.2,
     transmission:      0,
   },
 
-  // ── POOR: chaotic, heavily distorted, agitated ──
-  // Extreme deformation, fast movement, spiky ridges. Visual distress.
+  // ── POOR: heavily distorted, agitated ──
+  // Lost its spherical shape. Blobby bulges, spiky ridges, fast movement.
   poor: {
-    distort:           0.85,
-    frequency:         1.0,      // Low frequency = large blobby bulges
-    surfaceDistort:    0.45,
-    surfaceFrequency:  1.2,
-    speed:             0.01,
-    surfaceSpeed:      0.007,
-    numberOfWaves:     12.0,     // Many ridges — chaotic surface texture
-    roughness:         0.35,
-    clearcoat:         0.5,
-    clearcoatRoughness: 0.9,
-    envMapIntensity:   0.7,
+    distort:           0.6,
+    frequency:         1.2,
+    surfaceDistort:    0.3,
+    surfaceFrequency:  1.5,
+    speed:             0.008,
+    surfaceSpeed:      0.005,
+    numberOfWaves:     10.0,
+    roughness:         0.28,
+    clearcoat:         0.6,
+    clearcoatRoughness: 0.8,
+    envMapIntensity:   0.9,
     transmission:      0,
   },
 }

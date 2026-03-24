@@ -3,7 +3,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
-import { EffectComposer, RenderPass, EffectPass, BloomEffect, ToneMappingEffect } from 'postprocessing'
+import { EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing'
 import { gsap } from 'gsap'
 import noiseGlsl from './shaders/noise.glsl?raw'
 import displacementGlsl from './shaders/displacement.glsl?raw'
@@ -120,8 +120,9 @@ export class OrbScene {
       alpha: false,
       powerPreference: 'high-performance',
     })
-    renderer.setClearColor(0xFDFCFB, 1)  // Match page bg — prevents iOS compositor mismatch
-    renderer.toneMapping = THREE.NoToneMapping  // postprocessing handles tone mapping
+    renderer.setClearColor(0xFDFCFB, 1)  // Match page bg
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.3  // Slightly bright — compensates for ACES roll-off
     renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -163,7 +164,7 @@ export class OrbScene {
       metalness: 0,
       clearcoat: 1,
       clearcoatRoughness: 0.7,
-      envMapIntensity: 1.0,
+      envMapIntensity: 1.5,
       reflectivity: 0.5,
     })
 
@@ -260,10 +261,9 @@ export class OrbScene {
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
-    // Outdoor/natural HDRI — irregular detail (sky, horizon, bright spots)
-    // creates varied, crisp reflections like blobmixer's photograph
+    // Studio HDRI — sharp, controlled reflections with good specular highlights
     new RGBELoader().load(
-      '/env/outdoor.hdr',
+      '/env/studio.hdr',
       (texture) => {
         // Guard: scene may have been disposed if React unmounted during load
         if (!this._scene || !this._mesh) {
@@ -329,14 +329,7 @@ export class OrbScene {
       intensity: 0.5,
     })
 
-    const toneMapping = new ToneMappingEffect({
-      mode: THREE.ACESFilmicToneMapping,
-      resolution: 256,
-      whitePoint: 8.0,      // Brighter white point to prevent darkness
-      middleGrey: 0.6,      // Lift the midtones
-    })
-
-    composer.addPass(new EffectPass(this._camera, bloom, toneMapping))
+    composer.addPass(new EffectPass(this._camera, bloom))
     this._composer = composer
   }
 
