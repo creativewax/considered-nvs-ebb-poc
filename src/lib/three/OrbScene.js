@@ -3,7 +3,9 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
-import { EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing'
+// postprocessing removed — it silently overrides renderer.toneMapping,
+// making the orb look flat. Direct rendering with the renderer's own
+// ACES tone mapping produces blobmixer-quality results.
 import { gsap } from 'gsap'
 import noiseGlsl from './shaders/noise.glsl?raw'
 import displacementGlsl from './shaders/displacement.glsl?raw'
@@ -42,7 +44,6 @@ export class OrbScene {
     this._scene = null
     this._camera = null
     this._controls = null
-    this._composer = null
     this._mesh = null
     this._shader = null
     this._rafId = null
@@ -70,7 +71,6 @@ export class OrbScene {
     this._initLights()
     this._initEnvironment()
     this._initControls()
-    this._initPostProcessing()
 
     container.appendChild(this._renderer.domElement)
     this._initTapInteraction()
@@ -85,7 +85,6 @@ export class OrbScene {
       this._renderer.domElement.removeEventListener('click', this._onTap)
     }
     this._controls?.dispose()
-    this._composer?.dispose()
     this._renderer?.domElement?.remove()
     this.dispose()
   }
@@ -97,7 +96,6 @@ export class OrbScene {
     this._scene = null
     this._camera = null
     this._renderer = null
-    this._composer = null
     this._mesh = null
     this._shader = null
     this._container = null
@@ -109,7 +107,6 @@ export class OrbScene {
     this._camera.aspect = width / height
     this._camera.updateProjectionMatrix()
     this._renderer.setSize(width, height)
-    this._composer.setSize(width, height)
   }
 
   // ------------------------------------------------------------
@@ -124,7 +121,7 @@ export class OrbScene {
     })
     renderer.setClearColor(0xFDFCFB, 1)  // Match page bg
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.6  // Bright enough to show rich colours through ACES
+    renderer.toneMappingExposure = 1.8  // Rich and bright through ACES
     renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -330,26 +327,8 @@ export class OrbScene {
     controls.enablePan = false
     controls.enableZoom = false
     controls.autoRotate = true
-    controls.autoRotateSpeed = 1.0
+    controls.autoRotateSpeed = 1.5
     this._controls = controls
-  }
-
-  // ------------------------------------------------------------
-  // POST-PROCESSING
-  // ------------------------------------------------------------
-
-  _initPostProcessing() {
-    const composer = new EffectComposer(this._renderer)
-    composer.addPass(new RenderPass(this._scene, this._camera))
-
-    const bloom = new BloomEffect({
-      luminanceThreshold: 0.1,
-      luminanceSmoothing: 0.5,
-      intensity: 0.5,
-    })
-
-    composer.addPass(new EffectPass(this._camera, bloom))
-    this._composer = composer
   }
 
   // ------------------------------------------------------------
@@ -365,7 +344,7 @@ export class OrbScene {
     }
 
     this._controls?.update()
-    this._composer.render()
+    this._renderer.render(this._scene, this._camera)
   }
 
   // ------------------------------------------------------------

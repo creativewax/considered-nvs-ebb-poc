@@ -13,15 +13,15 @@ import { QUALITY_COLOURS } from '../constants/colours.js'
 //   blobmixer frequency stays same (already 0-3 range in our shader)
 
 const BLOBMIXER_PRESETS = {
-  // ── Score 95-100: "Freshwater" — pristine glass sphere, barely deformed ──
+  // ── Score 90-100: "Freshwater" — pristine glass sphere ──
   freshwater: {
     name: 'Freshwater',
     distort:           0.05,
     frequency:         0.03,
-    surfaceDistort:    0.087,   // 1.73 ÷ 20
-    surfaceFrequency:  0.91,    // 1.51 × 0.6
-    speed:             0.015,   // 3 ÷ 200
-    surfaceSpeed:      0.0033,  // 0.66 ÷ 200
+    surfaceDistort:    0.087,
+    surfaceFrequency:  0.91,
+    speed:             0.005,
+    surfaceSpeed:      0.003,
     numberOfWaves:     2.14,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
@@ -34,15 +34,15 @@ const BLOBMIXER_PRESETS = {
     ior:               2.33,
   },
 
-  // ── Score 85-94: "Blackhole" — smooth, dark elegance, subtle wobble ──
+  // ── Score 80-89: "Blackhole" — smooth, elegant, subtle ──
   blackhole: {
     name: 'Blackhole',
     distort:           0.1,
     frequency:         0.23,
-    surfaceDistort:    0,
-    surfaceFrequency:  0.28,    // 0.46 × 0.6
-    speed:             0.0028,  // 0.56 ÷ 200
-    surfaceSpeed:      0.0017,  // 0.34 ÷ 200
+    surfaceDistort:    0.02,
+    surfaceFrequency:  0.28,
+    speed:             0.003,
+    surfaceSpeed:      0.002,
     numberOfWaves:     1,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
@@ -50,19 +50,19 @@ const BLOBMIXER_PRESETS = {
     metalness:         0,
     clearcoat:         1,
     clearcoatRoughness: 0,
-    envMapIntensity:   0.18,
+    envMapIntensity:   2.0,
     transmission:      0,
   },
 
-  // ── Score 70-84: "Silkworm" — soft organic deformation, silky surface ──
+  // ── Score 65-79: "Silkworm" — soft organic, silky surface ──
   silkworm: {
     name: 'Silkworm',
     distort:           0.5,
     frequency:         2.01,
-    surfaceDistort:    0.057,   // 1.13 ÷ 20
-    surfaceFrequency:  0.52,    // 0.86 × 0.6
-    speed:             0.0,
-    surfaceSpeed:      0.0024,  // 0.48 ÷ 200
+    surfaceDistort:    0.057,
+    surfaceFrequency:  0.52,
+    speed:             0.003,
+    surfaceSpeed:      0.0024,
     numberOfWaves:     3.09,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
@@ -75,15 +75,15 @@ const BLOBMIXER_PRESETS = {
     transmission:      0,
   },
 
-  // ── Score 55-69: "Ghost" — flowing, translucent, wave ridges ──
+  // ── Score 50-64: "Ghost" — flowing, translucent, ridged ──
   ghost: {
     name: 'Ghost',
     distort:           0.7,
     frequency:         0.58,
-    surfaceDistort:    0.072,   // 1.43 ÷ 20
-    surfaceFrequency:  0.22,    // 0.36 × 0.6
-    speed:             0.0,
-    surfaceSpeed:      0.0034,  // 0.68 ÷ 200
+    surfaceDistort:    0.072,
+    surfaceFrequency:  0.22,
+    speed:             0.004,
+    surfaceSpeed:      0.0034,
     numberOfWaves:     5.5,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
@@ -95,98 +95,97 @@ const BLOBMIXER_PRESETS = {
     transmission:      1,
   },
 
-  // ── Score 40-54: "Slimebag" — blobby organic, rolling surface ──
-  slimebag: {
-    name: 'Slimebag',
-    distort:           0.52,
-    frequency:         1.52,
-    surfaceDistort:    0.15,    // 3 ÷ 20
-    surfaceFrequency:  0.38,    // 0.64 × 0.6
-    speed:             0.0017,  // 0.33 ÷ 200
-    surfaceSpeed:      0.0017,
-    numberOfWaves:     1,
+  // ── Score 35-49: "T-1000" — metallic, blobby, menacing ──
+  t1000: {
+    name: 'T-1000',
+    distort:           0.63,
+    frequency:         0.92,
+    surfaceDistort:    0.09,
+    surfaceFrequency:  0.3,
+    speed:             0.008,
+    surfaceSpeed:      0.002,
+    numberOfWaves:     2.71,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
-    roughness:         0.31,
-    metalness:         0.1,
-    clearcoat:         0,
+    roughness:         0.27,
+    metalness:         0.88,
+    clearcoat:         1,
     clearcoatRoughness: 0,
-    envMapIntensity:   0.95,
-    ior:               2.33,
+    envMapIntensity:   3.0,
     transmission:      0,
   },
 
-  // ── Score 25-39: "Firefly" — agitated, rough, fast surface ──
+  // ── Score 20-34: "Firefly" — agitated, rough, fast ──
   firefly: {
     name: 'Firefly',
     distort:           0.26,
     frequency:         0.49,
-    surfaceDistort:    0.12,    // 2.4 ÷ 20
-    surfaceFrequency:  0.11,    // 0.19 × 0.6
-    speed:             0.0098,  // 1.95 ÷ 200
-    surfaceSpeed:      0.0074,  // 1.47 ÷ 200
+    surfaceDistort:    0.12,
+    surfaceFrequency:  0.11,
+    speed:             0.01,
+    surfaceSpeed:      0.007,
     numberOfWaves:     1,
     surfacePoleAmount: 1,
-    gooPoleAmount:     0,       // No pole attenuation = more distortion at poles
+    gooPoleAmount:     0,
     roughness:         1,
     metalness:         0,
     clearcoat:         0,
     clearcoatRoughness: 0,
-    envMapIntensity:   0,
+    envMapIntensity:   1.5,
     transmission:      0,
   },
 
-  // ── Score 10-24: "Rosebud" — extreme surface waves, organic chaos ──
-  rosebud: {
-    name: 'Rosebud',
-    distort:           0.38,
-    frequency:         0.09,
-    surfaceDistort:    0.2,     // 3.97 ÷ 20
-    surfaceFrequency:  0.31,    // 0.51 × 0.6
-    speed:             0.005,   // 1 ÷ 200
-    surfaceSpeed:      0.0005,  // 0.1 ÷ 200
-    numberOfWaves:     6.13,
-    surfacePoleAmount: 0.51,
-    gooPoleAmount:     0.45,
-    roughness:         1,
-    metalness:         0,
-    clearcoat:         0,
-    clearcoatRoughness: 0.14,
-    envMapIntensity:   0,
-    transmission:      0,
-  },
-
-  // ── Score 0-9: "Devour" — extreme surface chaos, dark, distressed ──
-  devour: {
-    name: 'Devour',
-    distort:           0,
-    frequency:         1.19,
-    surfaceDistort:    0.5,     // 10 ÷ 20
-    surfaceFrequency:  0.11,    // 0.19 × 0.6
-    speed:             0.0015,  // 0.29 ÷ 200
-    surfaceSpeed:      0.01,    // 1.99 ÷ 200
+  // ── Score 10-19: "Lipsync" — extreme surface distortion, spiky ──
+  lipsync: {
+    name: 'Lipsync',
+    distort:           0.21,
+    frequency:         0.26,
+    surfaceDistort:    0.5,
+    surfaceFrequency:  2.35,
+    speed:             0.005,
+    surfaceSpeed:      0.015,
     numberOfWaves:     0.07,
     surfacePoleAmount: 0,
-    gooPoleAmount:     1,
+    gooPoleAmount:     0,
     roughness:         0.86,
     metalness:         0.28,
     clearcoat:         1,
     clearcoatRoughness: 0,
-    envMapIntensity:   0.87,
+    envMapIntensity:   2.5,
+    transmission:      0,
+  },
+
+  // ── Score 0-9: "Discobrain" — chaotic surface waves, fomosphere-like ──
+  discobrain: {
+    name: 'Discobrain',
+    distort:           0,
+    frequency:         0.06,
+    surfaceDistort:    0.155,
+    surfaceFrequency:  0.17,
+    speed:             0.005,
+    surfaceSpeed:      0.002,
+    numberOfWaves:     1,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
+    roughness:         0,
+    metalness:         0,
+    clearcoat:         1,
+    clearcoatRoughness: 0.14,
+    envMapIntensity:   3.0,
     transmission:      0,
   },
 }
 
 // Score ranges → preset mapping
 const SCORE_RANGES = [
-  { min: 95,  preset: 'freshwater' },
-  { min: 85,  preset: 'blackhole' },
-  { min: 70,  preset: 'silkworm' },
-  { min: 55,  preset: 'ghost' },
-  { min: 40,  preset: 'slimebag' },
-  { min: 25,  preset: 'firefly' },
-  { min: 10,  preset: 'rosebud' },
-  { min: 0,   preset: 'devour' },
+  { min: 90,  preset: 'freshwater' },
+  { min: 80,  preset: 'blackhole' },
+  { min: 65,  preset: 'silkworm' },
+  { min: 50,  preset: 'ghost' },
+  { min: 35,  preset: 't1000' },
+  { min: 20,  preset: 'firefly' },
+  { min: 10,  preset: 'lipsync' },
+  { min: 0,   preset: 'discobrain' },
 ]
 
 // ------------------------------------------------------------ INTERPOLATION
