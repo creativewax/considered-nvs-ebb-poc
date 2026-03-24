@@ -33,7 +33,7 @@ export default function HomePage() {
           transform: 'translate(-50%, -50%) scale(0.7)',
           pointerEvents: 'none',
         }}>
-          <PixiBackground showCutout={false} />
+          <PixiBackground showCutout={false} origin={[0, 0.25]} />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
