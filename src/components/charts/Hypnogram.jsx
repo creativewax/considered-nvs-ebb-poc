@@ -11,10 +11,10 @@ import styles from './Hypnogram.module.css'
 
 const STAGES = ['awake', 'rem', 'light', 'deep']
 const STAGE_Y = { awake: 0, rem: 1, light: 2, deep: 3 }
-const PADDING_LEFT = 4
-const PADDING_RIGHT = 4
-const PADDING_TOP = 6
-const PADDING_BOTTOM = 6
+const PADDING_LEFT = 6
+const PADDING_RIGHT = 6
+const PADDING_TOP = 8
+const PADDING_BOTTOM = 8
 const LINE_WIDTH = 8
 const CONNECTOR_COLOUR = 'rgba(174, 174, 178, 0.3)'
 const REVEAL_DURATION = 1500
@@ -56,7 +56,7 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
     const yForStage = (stage) => PADDING_TOP + STAGE_Y[stage] * stageHeight
 
     ctx.lineWidth = LINE_WIDTH
-    ctx.lineCap = 'butt'
+    ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
 
     const chartW = w - PADDING_LEFT - PADDING_RIGHT
