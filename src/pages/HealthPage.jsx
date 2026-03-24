@@ -72,13 +72,11 @@ export default function HealthPage() {
         </div>
 
         {/* ---- HYPNOGRAM ---- */}
-        <div className="card">
-          <Hypnogram
-            timeline={latest.stageTimeline}
-            bedtime={latest.bedtime}
-            wakeTime={latest.wakeTime}
-          />
-        </div>
+        <Hypnogram
+          timeline={latest.stageTimeline}
+          bedtime={latest.bedtime}
+          wakeTime={latest.wakeTime}
+        />
 
         {/* ---- VIEW FULL REPORT ---- */}
         <button
