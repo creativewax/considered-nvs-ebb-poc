@@ -8,18 +8,18 @@ import { Application, Mesh, MeshGeometry, Shader, GlProgram } from 'pixi.js'
 
 export const BLOB_SETTINGS = {
   // Shape
-  noiseScale:     1.2,    // Lobe count — lower = fewer/broader, higher = more/bumpier
-  baseRadius:     0.70,   // Overall blob size (0-1 UV space)
-  noiseAmount:    0.26,   // How far lobes extend in/out
-  octaves:        2,      // Shape smoothness — 1 = very smooth, 3+ = textured
-  breatheSpeed:   0.10,   // How fast the shape breathes
+  noiseScale:     0.75,    // Lobe count — lower = fewer/broader, higher = more/bumpier
+  baseRadius:     0.75,   // Overall blob size (0-1 UV space)
+  noiseAmount:    0.35,   // How far lobes extend in/out
+  octaves:        1,      // Shape smoothness — 1 = very smooth, 3+ = textured
+  breatheSpeed:   0.15,   // How fast the shape breathes
 
   // Edge
-  edgeSoftness:   0.012,  // Edge crispness — lower = sharper
+  edgeSoftness:   0.002,  // Edge crispness — lower = sharper
 
   // Inner cutout (where white circle sits)
-  innerRadius:    0.42,
-  innerSoftness:  0.025,
+  innerRadius:    0.65,
+  innerSoftness:  0.005,
 
   // Colours (#hex → vec3 RGB 0-1)
   colour1: [0.243, 0.227, 0.431],  // #3E3A6E — purple/indigo
@@ -27,8 +27,8 @@ export const BLOB_SETTINGS = {
   colour3: [0.902, 0.435, 0.396],  // #E66F65 — coral
 
   // Colour zones
-  blendWidth:     0.4,    // Colour boundary softness — lower = sharper zones
-  driftSpeed:     0.06,   // How fast colour zones rotate
+  blendWidth:     2.0,    // Colour boundary softness — lower = sharper zones
+  driftSpeed:     0.5,   // How fast colour zones rotate
 
   // Vividness
   saturation:     1.4,    // Colour boost — 1.0 = natural, higher = richer

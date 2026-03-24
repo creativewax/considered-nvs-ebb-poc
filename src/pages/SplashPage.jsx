@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import PixiBackground from '../components/splash/PixiBackground'
 import logoSvg from '../assets/Logo.svg'
 import dotsSvg from '../assets/Dots.svg'
-import dotsBkgdSvg from '../assets/DotsBkgd.svg'
 import styles from './SplashPage.module.css'
 
 // ------------------------------------------------------------ ANIMATION CONFIG
@@ -15,6 +14,15 @@ const FADE_VARIANTS = {
     opacity: 1,
     scale: 1,
     transition: { duration: 0.6, delay, ease: 'easeOut' },
+  }),
+}
+
+const SLIDE_UP = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (delay) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay, ease: 'easeOut' },
   }),
 }
 
@@ -46,33 +54,31 @@ function Spirograph() {
 export default function SplashPage() {
   return (
     <div className={styles.splash}>
-      {/* SVG stack with PixiJS shader behind the circle */}
+      {/* ── HEADING ── */}
+      <motion.h1
+        className={styles.heading}
+        variants={SLIDE_UP}
+        initial="hidden"
+        animate="visible"
+        custom={0.2}
+      >
+        Ebb: Living Between Waves
+      </motion.h1>
+
+      {/* ── ORB STACK ── */}
       <div className={styles.svgStack}>
-        {/* PixiJS organic lobes — sits behind the dots circle */}
         <div className={styles.pixiLayer}>
           <PixiBackground />
         </div>
 
         <Spirograph />
 
-        {/* Solid white circle behind the dots */}
         <motion.div
           className={styles.whiteCircle}
           variants={FADE_VARIANTS}
           initial="hidden"
           animate="visible"
           custom={0.6}
-        />
-
-        {/* Subtle radial gradient overlay from Figma export */}
-        <motion.img
-          src={dotsBkgdSvg}
-          alt=""
-          className={styles.dotsBkgd}
-          variants={FADE_VARIANTS}
-          initial="hidden"
-          animate="visible"
-          custom={0.7}
         />
 
         <motion.img
@@ -95,6 +101,22 @@ export default function SplashPage() {
           custom={0.3}
         />
       </div>
+
+      {/* ── BODY COPY ── */}
+      <motion.div
+        className={styles.bodyCopy}
+        variants={SLIDE_UP}
+        initial="hidden"
+        animate="visible"
+        custom={0.9}
+      >
+        <p className={styles.bodyPrimary}>
+          Every itch has its ebb. Track the flow, visualise the patterns, find peace in the spaces between flares. Your journey from hives to rest, rendered as living art.
+        </p>
+        <p className={styles.bodySecondary}>
+          When AI meets wearables meets social art, chronic illness becomes visible, validated, and valuable.
+        </p>
+      </motion.div>
     </div>
   )
 }
