@@ -1,5 +1,5 @@
 // src/lib/three/shaders/displacement.glsl
-// Two-layer displacement: goo + surface waves
+// Two-layer displacement + noise-driven vertex twist
 // Requires noise.glsl to be prepended (provides pnoise)
 
 #define M_PI 3.1415926538
@@ -15,6 +15,8 @@ uniform float numberOfWaves;
 uniform float fixNormals;
 uniform float surfacePoleAmount;
 uniform float gooPoleAmount;
+uniform float twist;
+uniform float twistFrequency;
 
 // ------------------------------------------------------------
 // ORTHOGONAL HELPER
@@ -24,6 +26,46 @@ vec3 orthogonal(vec3 v) {
   return normalize(abs(v.x) > abs(v.z)
     ? vec3(-v.y, v.x, 0.0)
     : vec3(0.0, -v.z, v.y));
+}
+
+// ------------------------------------------------------------
+// TWIST — rotate vertices around noise-driven axes
+// Creates flowing motion AROUND the sphere, not just in/out.
+// ------------------------------------------------------------
+
+vec3 applyTwist(vec3 point) {
+  if (twist < 0.001) return point;
+
+  // Noise-driven rotation angle per vertex
+  float noiseVal = pnoise(
+    vec3(point * twistFrequency + mod(time * 0.5, NOISE_PERIOD)),
+    vec3(NOISE_PERIOD)
+  );
+  float angle = noiseVal * twist;
+
+  // Rotate around Y axis (creates horizontal swirling)
+  float cy = cos(angle);
+  float sy = sin(angle);
+  vec3 twisted = vec3(
+    point.x * cy - point.z * sy,
+    point.y,
+    point.x * sy + point.z * cy
+  );
+
+  // Also add a smaller rotation around X (creates vertical flow)
+  float angle2 = pnoise(
+    vec3(point.yzx * twistFrequency * 0.7 + mod(time * 0.3, NOISE_PERIOD)),
+    vec3(NOISE_PERIOD)
+  ) * twist * 0.5;
+  float cx = cos(angle2);
+  float sx = sin(angle2);
+  twisted = vec3(
+    twisted.x,
+    twisted.y * cx - twisted.z * sx,
+    twisted.y * sx + twisted.z * cx
+  );
+
+  return twisted;
 }
 
 // ------------------------------------------------------------

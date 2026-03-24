@@ -26,11 +26,14 @@ const DEFAULT_UNIFORMS = {
   surfacePoleAmount: 1.0,
   gooPoleAmount:     1.0,
   surfaceSpeed:      0.003,
+  twist:             0,
+  twistFrequency:    1.0,
 }
 
 const TWEENED_UNIFORM_KEYS = [
   'distort', 'frequency', 'surfaceDistort', 'surfaceFrequency',
   'numberOfWaves', 'surfacePoleAmount', 'gooPoleAmount',
+  'twist', 'twistFrequency',
 ]
 
 const TWEENED_MATERIAL_KEYS = [
@@ -194,15 +197,17 @@ export class OrbScene {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <beginnormal_vertex>',
         /* glsl */ `
-          vec3 displacedPosition = position + normalize(normal) * f(position);
+          // Apply noise-driven twist BEFORE displacement
+          vec3 twistedPosition = applyTwist(position);
+          vec3 displacedPosition = twistedPosition + normalize(normal) * f(twistedPosition);
 
           vec3 objectNormal = normal;
           if (fixNormals == 1.0) {
             float offset = 0.5 / 512.0;
             vec3 tangent = orthogonal(normal);
             vec3 bitangent = normalize(cross(normal, tangent));
-            vec3 neighbour1 = position + tangent * offset;
-            vec3 neighbour2 = position + bitangent * offset;
+            vec3 neighbour1 = applyTwist(position + tangent * offset);
+            vec3 neighbour2 = applyTwist(position + bitangent * offset);
             vec3 displacedNeighbour1 = neighbour1 + normal * f(neighbour1);
             vec3 displacedNeighbour2 = neighbour2 + normal * f(neighbour2);
             vec3 displacedTangent = displacedNeighbour1 - displacedPosition;
