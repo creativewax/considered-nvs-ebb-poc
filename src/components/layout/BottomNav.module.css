@@ -4,22 +4,26 @@
 
 .navWrapper {
   position: fixed;
-  bottom: var(--space-md);
-  left: var(--space-md);
-  right: var(--space-md);
-  height: calc(var(--bottom-nav-height) + var(--space-md));
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 var(--space-md) var(--space-md);
   z-index: var(--z-nav);
   pointer-events: none;
 }
 
-/* Frosted blur background — sits behind the nav */
+/* Frosted blur background — full width, square to container edges */
 .navBlur {
   position: absolute;
-  inset: calc(-1 * var(--space-sm));
-  border-radius: calc(var(--radius-full) + var(--space-sm));
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: calc(-1 * var(--space-xl));
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
 }
 
 /* ------------------------------------------------------------ NAV CONTAINER */
