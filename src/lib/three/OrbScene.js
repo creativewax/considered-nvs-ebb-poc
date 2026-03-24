@@ -255,17 +255,18 @@ export class OrbScene {
     this._scene.add(ambient)
 
     // Key — upper right, strongest, primary colour
-    this._keyLight = new THREE.PointLight(0xffffff, 15, 20)
+    // Lights start with warm/cool tint so they're never pure white
+    this._keyLight = new THREE.PointLight(0xffeedd, 15, 20)
     this._keyLight.position.set(3, 4, 4)
     this._scene.add(this._keyLight)
 
-    // Fill — left, secondary colour
-    this._fillLight = new THREE.PointLight(0xffffff, 12, 20)
+    // Fill — cool tone default
+    this._fillLight = new THREE.PointLight(0xddccff, 12, 20)
     this._fillLight.position.set(-4, 1, 3)
     this._scene.add(this._fillLight)
 
-    // Rim — behind/below, accent colour for edge
-    this._rimLight = new THREE.PointLight(0xffffff, 8, 20)
+    // Rim — warm default
+    this._rimLight = new THREE.PointLight(0xffccaa, 8, 20)
     this._rimLight.position.set(0, -3, -4)
     this._scene.add(this._rimLight)
   }
@@ -461,6 +462,7 @@ export class OrbScene {
     this._updateTendrils(config)
 
     // Light colours — paint the orb with gradient blending
+    console.log('[OrbScene] Setting light colours:', config.lightKey, config.lightFill, config.lightRim)
     if (config.lightKey && this._keyLight) {
       const kc = new THREE.Color(config.lightKey)
       gsap.to(this._keyLight.color, { r: kc.r, g: kc.g, b: kc.b, duration: 0.8, ease: 'power2.inOut' })
