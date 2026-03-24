@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import BasePage from '../components/common/BasePage'
 import PixiBackground from '../components/splash/PixiBackground'
+import AnimatedGradient from '../components/common/AnimatedGradient'
 import HomeAnimation from '../components/home/HomeAnimation'
 import SleepSummary from '../components/home/SleepSummary'
 import TrendCards from '../components/home/TrendCards'
@@ -16,6 +17,7 @@ export default function HomePage() {
 
   return (
     <BasePage>
+      <AnimatedGradient />
       <HomeAnimation />
 
       {/* ── HERO SECTION — sleep summary with pixi blob behind ── */}

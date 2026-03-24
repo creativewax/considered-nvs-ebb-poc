@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import BasePage from '../components/common/BasePage'
+import AnimatedGradient from '../components/common/AnimatedGradient'
 import WearableCard from '../components/profile/WearableCard'
 import SyncButton from '../components/profile/SyncButton'
 import Settings from '../components/profile/Settings'
@@ -31,7 +32,8 @@ export default function ProfilePage() {
 
   return (
     <BasePage>
-      <div className="page-content">
+      <AnimatedGradient />
+      <div className="page-content" style={{ position: 'relative', zIndex: 1 }}>
         {/* ---- USER AVATAR + DETAILS (centred) ---- */}
         <div style={{
           display: 'flex',

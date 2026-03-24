@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import BasePage from '../components/common/BasePage'
+import AnimatedGradient from '../components/common/AnimatedGradient'
 import HistoryCard from '../components/history/HistoryCard'
 import { useSleep } from '../hooks/useSleep'
 
@@ -30,7 +31,8 @@ export default function HistoryPage() {
 
   return (
     <BasePage>
-      <div className="page-content">
+      <AnimatedGradient />
+      <div className="page-content" style={{ position: 'relative', zIndex: 1 }}>
         <h1 className="page-title">History</h1>
 
         {sorted.length === 0 ? (
