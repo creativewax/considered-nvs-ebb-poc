@@ -71,7 +71,7 @@ const makeRecord = (fields) => ({
 export const allRecords = [
 
   // ----------------------------------------------------------
-  // sleep-001 | Jan 15 | GOOD (score 76)
+  // sleep-001 | Jan 15 | VERY GOOD (score 82)
   // ----------------------------------------------------------
   makeRecord({
     id: 'sleep-001',
@@ -103,11 +103,11 @@ export const allRecords = [
     minHeartRate: 48,
     hrv: 46,
     respiratoryRate: 14,
-    score: 76,
+    score: 82,
   }),
 
   // ----------------------------------------------------------
-  // sleep-002 | Jan 16 | GOOD (score 80)
+  // sleep-002 | Jan 16 | RESTLESS (score 45)
   // ----------------------------------------------------------
   makeRecord({
     id: 'sleep-002',
@@ -139,11 +139,11 @@ export const allRecords = [
     minHeartRate: 47,
     hrv: 49,
     respiratoryRate: 14,
-    score: 80,
+    score: 45,
   }),
 
   // ----------------------------------------------------------
-  // sleep-003 | Jan 17 | POOR (score 32)
+  // sleep-003 | Jan 17 | GOOD (score 72) | POOR (score 32)
   // Has CSU trigger — severe flare
   // ----------------------------------------------------------
   makeRecord({
@@ -176,11 +176,11 @@ export const allRecords = [
     minHeartRate: 55,
     hrv: 28,
     respiratoryRate: 16,
-    score: 32,
+    score: 72,
   }),
 
   // ----------------------------------------------------------
-  // sleep-004 | Jan 18 | FAIR (score 58)
+  // sleep-004 | Jan 18 | DISRUPTED (score 5) — today's terrible night | FAIR (score 58)
   // ----------------------------------------------------------
   makeRecord({
     id: 'sleep-004',
@@ -212,7 +212,7 @@ export const allRecords = [
     minHeartRate: 51,
     hrv: 36,
     respiratoryRate: 15,
-    score: 58,
+    score: 5,
   }),
 
   // ----------------------------------------------------------
@@ -248,7 +248,7 @@ export const allRecords = [
     minHeartRate: 58,
     hrv: 22,
     respiratoryRate: 17,
-    score: 28,
+    score: 15,
   }),
 
   // ----------------------------------------------------------
@@ -284,7 +284,7 @@ export const allRecords = [
     minHeartRate: 50,
     hrv: 38,
     respiratoryRate: 15,
-    score: 62,
+    score: 30,
   }),
 
   // ----------------------------------------------------------
@@ -320,7 +320,7 @@ export const allRecords = [
     minHeartRate: 49,
     hrv: 43,
     respiratoryRate: 14,
-    score: 74,
+    score: 52,
   }),
 
   // ----------------------------------------------------------
@@ -356,7 +356,7 @@ export const allRecords = [
     minHeartRate: 44,
     hrv: 62,
     respiratoryRate: 13,
-    score: 88,
+    score: 95,
   }),
 
   // ----------------------------------------------------------
@@ -393,7 +393,7 @@ export const allRecords = [
     minHeartRate: 52,
     hrv: 33,
     respiratoryRate: 15,
-    score: 48,
+    score: 38,
   }),
 
   // ----------------------------------------------------------
@@ -429,7 +429,7 @@ export const allRecords = [
     minHeartRate: 47,
     hrv: 48,
     respiratoryRate: 14,
-    score: 79,
+    score: 65,
   }),
 
   // ----------------------------------------------------------
@@ -466,7 +466,7 @@ export const allRecords = [
     minHeartRate: 50,
     hrv: 41,
     respiratoryRate: 14,
-    score: 72,
+    score: 85,
   }),
 
   // ----------------------------------------------------------
@@ -502,6 +502,6 @@ export const allRecords = [
     minHeartRate: 42,
     hrv: 68,
     respiratoryRate: 13,
-    score: 91,
+    score: 55,
   }),
 ]
