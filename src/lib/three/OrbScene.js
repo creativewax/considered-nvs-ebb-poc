@@ -13,15 +13,16 @@ import displacementGlsl from './shaders/displacement.glsl?raw'
 
 const DEFAULT_UNIFORMS = {
   time:              0,
-  distort:           0.4,
+  distort:           0.3,
   frequency:         2.0,
-  surfaceDistort:    0.1,
+  surfaceDistort:    0.08,
   surfaceFrequency:  3.0,
   surfaceTime:       0,
   numberOfWaves:     5.0,
   fixNormals:        1.0,
   surfacePoleAmount: 1.0,
   gooPoleAmount:     1.0,
+  surfaceSpeed:      0.003,
 }
 
 const TWEENED_UNIFORM_KEYS = [
@@ -213,14 +214,14 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    const ambient = new THREE.AmbientLight(0xffffff, 0.2)
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5)
     this._scene.add(ambient)
 
-    const spot = new THREE.SpotLight(0xffffff, 0.5)
-    spot.position.set(3, 3, 3)
-    spot.angle = Math.PI / 4
+    const spot = new THREE.SpotLight(0xffffff, 1.5)
+    spot.position.set(3, 4, 5)
+    spot.angle = Math.PI / 3
     spot.penumbra = 1
-    spot.decay = 0.5
+    spot.decay = 0.3
     this._scene.add(spot)
   }
 
@@ -232,21 +233,30 @@ export class OrbScene {
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
-    // Build a simple environment scene with coloured lights
+    // Build a rich environment scene — brighter and more varied than a simple dark bg
     const envScene = new THREE.Scene()
-    envScene.background = new THREE.Color(0x1a1a2e)
+    envScene.background = new THREE.Color(0x8899aa)  // Mid-tone for balanced reflections
 
-    const light1 = new THREE.PointLight(0x44aec6, 8, 20)
+    // Multiple lights for varied reflections (like a studio setup)
+    const light1 = new THREE.PointLight(0xffffff, 30, 30)
     light1.position.set(5, 5, 5)
     envScene.add(light1)
 
-    const light2 = new THREE.PointLight(0x3daa7a, 6, 20)
-    light2.position.set(-5, 3, -5)
+    const light2 = new THREE.PointLight(0x44aec6, 20, 30)
+    light2.position.set(-6, 3, -4)
     envScene.add(light2)
 
-    const light3 = new THREE.PointLight(0xe8dcc8, 4, 20)
-    light3.position.set(0, -5, 5)
+    const light3 = new THREE.PointLight(0xe8dcc8, 15, 30)
+    light3.position.set(0, -5, 6)
     envScene.add(light3)
+
+    const light4 = new THREE.PointLight(0x3daa7a, 12, 30)
+    light4.position.set(4, -3, -6)
+    envScene.add(light4)
+
+    const light5 = new THREE.PointLight(0xffeedd, 18, 30)
+    light5.position.set(-4, 6, 2)
+    envScene.add(light5)
 
     const envMap = pmrem.fromScene(envScene, 0, 0.1, 100).texture
     this._scene.environment = envMap
@@ -317,6 +327,7 @@ export class OrbScene {
 
   updateConfig(config) {
     if (!config || !this._mesh) return
+    console.log('[OrbScene] updateConfig:', config.quality, 'distort:', config.distort)
 
     this._killTweens()
 
