@@ -254,24 +254,24 @@ export class OrbScene {
     const ambient = new THREE.AmbientLight(0xffffff, 0.08)
     this._scene.add(ambient)
 
-    // Key light — upper right, coloured accent
-    this._keyLight = new THREE.SpotLight(0xffffff, 0.6)
+    // Key light — upper right, coloured accent (strong enough to tint)
+    this._keyLight = new THREE.SpotLight(0xffffff, 2.0)
     this._keyLight.position.set(4, 5, 5)
-    this._keyLight.angle = Math.PI / 4
+    this._keyLight.angle = Math.PI / 3
     this._keyLight.penumbra = 1
-    this._keyLight.decay = 0.5
+    this._keyLight.decay = 0.3
     this._scene.add(this._keyLight)
 
-    // Fill light — left side, second colour accent
-    this._fillLight = new THREE.SpotLight(0xffffff, 0.4)
+    // Fill light — left side, second colour
+    this._fillLight = new THREE.SpotLight(0xffffff, 1.5)
     this._fillLight.position.set(-5, 2, 3)
     this._fillLight.angle = Math.PI / 3
     this._fillLight.penumbra = 1
-    this._fillLight.decay = 0.5
+    this._fillLight.decay = 0.3
     this._scene.add(this._fillLight)
 
-    // Rim light — behind, third colour for edge definition
-    this._rimLight = new THREE.SpotLight(0xffffff, 0.25)
+    // Rim light — behind, third colour
+    this._rimLight = new THREE.SpotLight(0xffffff, 1.0)
     this._rimLight.position.set(0, -4, -4)
     this._rimLight.angle = Math.PI / 3
     this._rimLight.penumbra = 1
