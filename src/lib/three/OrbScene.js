@@ -2,7 +2,7 @@
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js'
 import { EffectComposer, RenderPass, EffectPass, BloomEffect, VignetteEffect } from 'postprocessing'
 import { gsap } from 'gsap'
 import noiseGlsl from './shaders/noise.glsl?raw'
@@ -50,6 +50,7 @@ export class OrbScene {
     this._activeTweens = []
     this._baseDistort = null   // baseline distort value between config updates
     this._onTap = null         // bound tap handler for cleanup
+    this._lastConfig = null    // cached config to re-apply after shader recompilation
   }
 
   // ------------------------------------------------------------
@@ -221,6 +222,11 @@ export class OrbScene {
       )
 
       console.log('[OrbScene] Shader patched successfully')
+
+      // Re-apply cached config after shader recompilation (e.g. after HDRI load)
+      if (this._lastConfig) {
+        this._applyConfigToShader(this._lastConfig)
+      }
     }
 
     this._mesh = new THREE.Mesh(geometry, material)
@@ -252,23 +258,29 @@ export class OrbScene {
     const pmrem = new THREE.PMREMGenerator(this._renderer)
     pmrem.compileEquirectangularShader()
 
-    new RGBELoader().load(
+    new HDRLoader().load(
       '/env/studio.hdr',
       (texture) => {
+        // Guard: scene may have been disposed if React unmounted during load
+        if (!this._scene || !this._mesh) {
+          console.warn('[OrbScene] HDRI loaded but scene already disposed')
+          texture.dispose()
+          pmrem.dispose()
+          return
+        }
         console.log('[OrbScene] HDRI loaded successfully')
         const envMap = pmrem.fromEquirectangular(texture).texture
         this._scene.environment = envMap
-        if (this._mesh?.material) {
-          this._mesh.material.envMap = envMap
-          this._mesh.material.needsUpdate = true
-        }
+        this._mesh.material.envMap = envMap
+        this._mesh.material.needsUpdate = true
         texture.dispose()
         pmrem.dispose()
       },
       undefined,
       (err) => {
         console.error('[OrbScene] Failed to load HDRI:', err)
-        // Fallback: build a simple programmatic environment
+        if (!this._scene || !this._mesh) { pmrem.dispose(); return }
+        // Fallback: programmatic environment
         const fallbackScene = new THREE.Scene()
         fallbackScene.background = new THREE.Color(0x888888)
         const l = new THREE.PointLight(0xffffff, 30, 30)
@@ -276,10 +288,8 @@ export class OrbScene {
         fallbackScene.add(l)
         const envMap = pmrem.fromScene(fallbackScene).texture
         this._scene.environment = envMap
-        if (this._mesh?.material) {
-          this._mesh.material.envMap = envMap
-          this._mesh.material.needsUpdate = true
-        }
+        this._mesh.material.envMap = envMap
+        this._mesh.material.needsUpdate = true
         fallbackScene.clear()
         pmrem.dispose()
       }
@@ -341,12 +351,28 @@ export class OrbScene {
   }
 
   // ------------------------------------------------------------
+  // APPLY CONFIG TO SHADER (immediate, no tween — used after recompilation)
+  // ------------------------------------------------------------
+
+  _applyConfigToShader(config) {
+    if (!this._shader) return
+    for (const key of TWEENED_UNIFORM_KEYS) {
+      if (config[key] != null && this._shader.uniforms[key]) {
+        this._shader.uniforms[key].value = config[key]
+      }
+    }
+    if (config.speed != null) this._speed = config.speed
+    if (config.surfaceSpeed != null) this._surfaceSpeed = config.surfaceSpeed
+  }
+
+  // ------------------------------------------------------------
   // CONFIG UPDATE — tween uniforms + material for smooth transitions
   // ------------------------------------------------------------
 
   updateConfig(config) {
     if (!config || !this._mesh) return
     console.log('[OrbScene] updateConfig:', config.quality, 'distort:', config.distort)
+    this._lastConfig = config
 
     this._killTweens()
 
