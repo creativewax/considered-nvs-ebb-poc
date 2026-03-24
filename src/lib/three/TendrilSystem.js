@@ -7,7 +7,7 @@ import * as THREE from 'three'
 
 // ------------------------------------------------------------ CONFIG
 
-const CUBES_PER_PATH = 24  // Dense packing — cubes overlap to form ribbons
+const CUBES_PER_PATH = 48  // Very dense — many small cubes forming solid ribbons
 
 // ------------------------------------------------------------ TENDRIL SYSTEM
 
@@ -34,7 +34,7 @@ export class TendrilSystem {
 
     // Small cube — sized to overlap with neighbours at CUBES_PER_PATH density
     const thickness = config.tendrilThickness ?? 0.01
-    const geo = new THREE.BoxGeometry(thickness * 4, thickness * 3, thickness * 4)
+    const geo = new THREE.BoxGeometry(thickness * 2, thickness * 1.5, thickness * 2)
 
     // Rich metallic material
     const mat = new THREE.MeshPhysicalMaterial({

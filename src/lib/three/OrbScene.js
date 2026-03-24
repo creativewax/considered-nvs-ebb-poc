@@ -168,7 +168,7 @@ export class OrbScene {
       metalness: 0,
       clearcoat: 1,
       clearcoatRoughness: 0.7,
-      envMapIntensity: 1.5,
+      envMapIntensity: 0.8,
       reflectivity: 0.5,
     })
 
@@ -249,33 +249,24 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    // Material colour provides the BASE. Coloured lights add GRADIENT TINTING.
-    // Low ambient so the material colour dominates. Lights are subtle accents.
-    const ambient = new THREE.AmbientLight(0xffffff, 0.08)
+    // PointLights for wide coloured coverage. These tint the surface
+    // from different directions creating the gradient blend.
+    const ambient = new THREE.AmbientLight(0xffffff, 0.05)
     this._scene.add(ambient)
 
-    // Key light — upper right, coloured accent (strong enough to tint)
-    this._keyLight = new THREE.SpotLight(0xffffff, 2.0)
-    this._keyLight.position.set(4, 5, 5)
-    this._keyLight.angle = Math.PI / 3
-    this._keyLight.penumbra = 1
-    this._keyLight.decay = 0.3
+    // Key — upper right, strongest, primary colour
+    this._keyLight = new THREE.PointLight(0xffffff, 8, 15)
+    this._keyLight.position.set(3, 4, 4)
     this._scene.add(this._keyLight)
 
-    // Fill light — left side, second colour
-    this._fillLight = new THREE.SpotLight(0xffffff, 1.5)
-    this._fillLight.position.set(-5, 2, 3)
-    this._fillLight.angle = Math.PI / 3
-    this._fillLight.penumbra = 1
-    this._fillLight.decay = 0.3
+    // Fill — left, secondary colour
+    this._fillLight = new THREE.PointLight(0xffffff, 6, 15)
+    this._fillLight.position.set(-4, 1, 3)
     this._scene.add(this._fillLight)
 
-    // Rim light — behind, third colour
-    this._rimLight = new THREE.SpotLight(0xffffff, 1.0)
-    this._rimLight.position.set(0, -4, -4)
-    this._rimLight.angle = Math.PI / 3
-    this._rimLight.penumbra = 1
-    this._rimLight.decay = 0.5
+    // Rim — behind/below, accent colour for edge
+    this._rimLight = new THREE.PointLight(0xffffff, 4, 15)
+    this._rimLight.position.set(0, -3, -4)
     this._scene.add(this._rimLight)
   }
 
