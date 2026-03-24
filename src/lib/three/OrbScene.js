@@ -249,29 +249,29 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    // Blobmixer approach: coloured lights paint gradients across the surface.
-    // The orb material stays white — light colours create the palette blending.
-    const ambient = new THREE.AmbientLight(0xffffff, 0.12)
+    // Material colour provides the BASE. Coloured lights add GRADIENT TINTING.
+    // Low ambient so the material colour dominates. Lights are subtle accents.
+    const ambient = new THREE.AmbientLight(0xffffff, 0.08)
     this._scene.add(ambient)
 
-    // Key light — upper right (will be coloured per preset)
-    this._keyLight = new THREE.SpotLight(0xffffff, 1.2)
+    // Key light — upper right, coloured accent
+    this._keyLight = new THREE.SpotLight(0xffffff, 0.6)
     this._keyLight.position.set(4, 5, 5)
     this._keyLight.angle = Math.PI / 4
     this._keyLight.penumbra = 1
     this._keyLight.decay = 0.5
     this._scene.add(this._keyLight)
 
-    // Fill light — left side (second colour)
-    this._fillLight = new THREE.SpotLight(0xffffff, 0.8)
+    // Fill light — left side, second colour accent
+    this._fillLight = new THREE.SpotLight(0xffffff, 0.4)
     this._fillLight.position.set(-5, 2, 3)
     this._fillLight.angle = Math.PI / 3
     this._fillLight.penumbra = 1
     this._fillLight.decay = 0.5
     this._scene.add(this._fillLight)
 
-    // Rim light — behind/below (third colour, subtle)
-    this._rimLight = new THREE.SpotLight(0xffffff, 0.4)
+    // Rim light — behind, third colour for edge definition
+    this._rimLight = new THREE.SpotLight(0xffffff, 0.25)
     this._rimLight.position.set(0, -4, -4)
     this._rimLight.angle = Math.PI / 3
     this._rimLight.penumbra = 1
