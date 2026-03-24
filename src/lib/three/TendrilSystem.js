@@ -43,7 +43,7 @@ export class TendrilSystem {
       metalness: 0.95,
       clearcoat: 1,
       clearcoatRoughness: 0.25,
-      envMapIntensity: 4.0,
+      envMapIntensity: 2.0,
     })
 
     if (this._scene.environment) {
@@ -84,7 +84,7 @@ export class TendrilSystem {
   }
 
   _updateAllInstances(time) {
-    const sphereRadius = 1.03
+    const sphereRadius = 1.0
     let idx = 0
 
     for (let p = 0; p < this._pathCount; p++) {

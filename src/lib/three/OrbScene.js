@@ -140,6 +140,10 @@ export class OrbScene {
 
   _initScene() {
     this._scene = new THREE.Scene()
+    // Low environmentIntensity: HDRI provides subtle specular reflections only.
+    // Point lights handle ALL diffuse colouring — this is why they were invisible
+    // before. The env map was fully illuminating the surface, drowning them out.
+    this._scene.environmentIntensity = 0.15
   }
 
   // ------------------------------------------------------------
@@ -249,22 +253,23 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    // PointLights for wide coloured coverage. These tint the surface
-    // from different directions creating the gradient blend.
-    const ambient = new THREE.AmbientLight(0xffffff, 0.05)
+    // With scene.environmentIntensity at 0.15, point lights are the PRIMARY
+    // source of diffuse lighting. Reasonable intensities now work.
+    const ambient = new THREE.AmbientLight(0xffffff, 0.1)
     this._scene.add(ambient)
 
-    // Key — upper right, strongest, primary colour
-    // Three coloured lights — equal-ish intensity so ALL colours show
-    this._keyLight = new THREE.PointLight(0xffeedd, 12, 15)
-    this._keyLight.position.set(2.5, 3, 3)  // Close for strong coverage
+    // Key — upper right
+    this._keyLight = new THREE.PointLight(0xffeedd, 10, 12)
+    this._keyLight.position.set(2.5, 3, 3)
     this._scene.add(this._keyLight)
 
-    this._fillLight = new THREE.PointLight(0xddccff, 12, 15)
+    // Fill — left
+    this._fillLight = new THREE.PointLight(0xddccff, 10, 12)
     this._fillLight.position.set(-3, 0, 2.5)
     this._scene.add(this._fillLight)
 
-    this._rimLight = new THREE.PointLight(0xffccaa, 10, 15)
+    // Rim — behind
+    this._rimLight = new THREE.PointLight(0xffccaa, 8, 12)
     this._rimLight.position.set(0, -2.5, -3)
     this._scene.add(this._rimLight)
   }
