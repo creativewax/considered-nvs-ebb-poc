@@ -124,7 +124,7 @@ export class OrbScene {
     })
     renderer.setClearColor(0xFDFCFB, 1)  // Match page bg
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.3  // Slightly bright — compensates for ACES roll-off
+    renderer.toneMappingExposure = 1.6  // Bright enough to show rich colours through ACES
     renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -242,16 +242,33 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    // Match blobmixer: low ambient, modest spot — let the env map do the work
-    const ambient = new THREE.AmbientLight(0xffffff, 0.2)
+    // Blobmixer-style multi-light rig with coloured spots
+    const ambient = new THREE.AmbientLight(0xffffff, 0.15)
     this._scene.add(ambient)
 
-    const spot = new THREE.SpotLight(0xffffff, 0.5)
-    spot.position.set(3, 4, 5)
-    spot.angle = Math.PI / 4
-    spot.penumbra = 1
-    spot.decay = 0.5
-    this._scene.add(spot)
+    // Key light — warm white, strong, from upper right
+    const key = new THREE.SpotLight(0xffeedd, 1.0)
+    key.position.set(4, 5, 5)
+    key.angle = Math.PI / 4
+    key.penumbra = 1
+    key.decay = 0.5
+    this._scene.add(key)
+
+    // Fill light — cool blue, softer, from left
+    const fill = new THREE.SpotLight(0x88aacc, 0.5)
+    fill.position.set(-5, 2, 3)
+    fill.angle = Math.PI / 3
+    fill.penumbra = 1
+    fill.decay = 0.5
+    this._scene.add(fill)
+
+    // Rim light — from behind/below for edge definition
+    const rim = new THREE.SpotLight(0xffffff, 0.3)
+    rim.position.set(0, -4, -4)
+    rim.angle = Math.PI / 3
+    rim.penumbra = 1
+    rim.decay = 0.5
+    this._scene.add(rim)
   }
 
   // ------------------------------------------------------------

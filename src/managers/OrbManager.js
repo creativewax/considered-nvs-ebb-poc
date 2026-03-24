@@ -4,151 +4,228 @@ import BaseManager from './BaseManager.js'
 import { EVENTS } from '../constants/events.js'
 import { QUALITY_COLOURS } from '../constants/colours.js'
 
-// ------------------------------------------------------------ BLOBMIXER-DERIVED PRESETS
-// These are based on REAL blobmixer presets from their source code.
-// We pick 5 anchor points across the 0-100 score range and interpolate.
-// Note: blobmixer uses different scales for some values. Key mappings:
-//   blobmixer speed ~1.0 = our speed ~0.005 (they use higher tick rates)
-//   blobmixer distort is already 0-1 range (same as ours)
-//   blobmixer surfaceDistort 0-10 range = our 0-0.5 range (÷20)
-//   blobmixer frequency 0-5 range = our 0-3 range (×0.6)
+// ------------------------------------------------------------ BLOBMIXER PRESETS
+// Extracted from blobmixer source (store.js). Each has a unique character.
+// Values converted to our shader scale:
+//   blobmixer speed ÷ 200 → our speed
+//   blobmixer surfaceDistort ÷ 20 → our surfaceDistort
+//   blobmixer surfaceFrequency × 0.6 → our surfaceFrequency
+//   blobmixer frequency stays same (already 0-3 range in our shader)
 
-const SCORE_ANCHORS = [
-  // Score 0-15: "Devour" inspired — extreme surface chaos, dark, agitated
-  {
-    score: 0,
-    distort:           0.65,
-    frequency:         0.7,     // Low = big blobby distortions
-    surfaceDistort:    0.5,     // High surface waves
-    surfaceFrequency:  0.12,    // Low freq = large rolling waves
-    speed:             0.008,
-    surfaceSpeed:      0.01,
-    numberOfWaves:     0.5,     // Very few waves — big undulations
-    surfacePoleAmount: 0,
-    gooPoleAmount:     1,
-    roughness:         0.35,
-    metalness:         0.1,
-    clearcoat:         0.5,
-    clearcoatRoughness: 0.86,
-    envMapIntensity:   0.9,
-    transmission:      0,
-  },
-
-  // Score 25: "Slimebag" inspired — blobby, organic, chaotic surface
-  {
-    score: 25,
-    distort:           0.52,
-    frequency:         0.9,
-    surfaceDistort:    0.15,
-    surfaceFrequency:  0.4,
-    speed:             0.005,
-    surfaceSpeed:      0.005,
-    numberOfWaves:     3.0,
+const BLOBMIXER_PRESETS = {
+  // ── Score 95-100: "Freshwater" — pristine glass sphere, barely deformed ──
+  freshwater: {
+    name: 'Freshwater',
+    distort:           0.05,
+    frequency:         0.03,
+    surfaceDistort:    0.087,   // 1.73 ÷ 20
+    surfaceFrequency:  0.91,    // 1.51 × 0.6
+    speed:             0.015,   // 3 ÷ 200
+    surfaceSpeed:      0.0033,  // 0.66 ÷ 200
+    numberOfWaves:     2.14,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
-    roughness:         0.25,
-    metalness:         0.05,
-    clearcoat:         0.7,
-    clearcoatRoughness: 0.7,
-    envMapIntensity:   1.0,
+    roughness:         0,
+    metalness:         0.5,
+    clearcoat:         0,
+    clearcoatRoughness: 0,
+    envMapIntensity:   5,
+    transmission:      1,
+    ior:               2.33,
+  },
+
+  // ── Score 85-94: "Blackhole" — smooth, dark elegance, subtle wobble ──
+  blackhole: {
+    name: 'Blackhole',
+    distort:           0.1,
+    frequency:         0.23,
+    surfaceDistort:    0,
+    surfaceFrequency:  0.28,    // 0.46 × 0.6
+    speed:             0.0028,  // 0.56 ÷ 200
+    surfaceSpeed:      0.0017,  // 0.34 ÷ 200
+    numberOfWaves:     1,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
+    roughness:         0.2,
+    metalness:         0,
+    clearcoat:         1,
+    clearcoatRoughness: 0,
+    envMapIntensity:   0.18,
     transmission:      0,
   },
 
-  // Score 50: "Ghost" inspired — flowing, translucent, wave ridges
-  {
-    score: 50,
-    distort:           0.35,
-    frequency:         1.2,
-    surfaceDistort:    0.07,
-    surfaceFrequency:  0.8,
-    speed:             0.004,
-    surfaceSpeed:      0.003,
+  // ── Score 70-84: "Silkworm" — soft organic deformation, silky surface ──
+  silkworm: {
+    name: 'Silkworm',
+    distort:           0.5,
+    frequency:         2.01,
+    surfaceDistort:    0.057,   // 1.13 ÷ 20
+    surfaceFrequency:  0.52,    // 0.86 × 0.6
+    speed:             0.0,
+    surfaceSpeed:      0.0024,  // 0.48 ÷ 200
+    numberOfWaves:     3.09,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
+    roughness:         0.42,
+    metalness:         0,
+    clearcoat:         0,
+    clearcoatRoughness: 0,
+    envMapIntensity:   4.62,
+    reflectivity:      0.53,
+    transmission:      0,
+  },
+
+  // ── Score 55-69: "Ghost" — flowing, translucent, wave ridges ──
+  ghost: {
+    name: 'Ghost',
+    distort:           0.7,
+    frequency:         0.58,
+    surfaceDistort:    0.072,   // 1.43 ÷ 20
+    surfaceFrequency:  0.22,    // 0.36 × 0.6
+    speed:             0.0,
+    surfaceSpeed:      0.0034,  // 0.68 ÷ 200
     numberOfWaves:     5.5,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
-    roughness:         0.14,
-    metalness:         0,
-    clearcoat:         1.0,
-    clearcoatRoughness: 0.5,
-    envMapIntensity:   1.3,
-    transmission:      0.15,
+    roughness:         0.31,
+    metalness:         0.28,
+    clearcoat:         1,
+    clearcoatRoughness: 0.26,
+    envMapIntensity:   5,
+    transmission:      1,
   },
 
-  // Score 75: "Blackhole" inspired — smooth, subtle, elegant deformation
-  {
-    score: 75,
-    distort:           0.15,
-    frequency:         1.8,
-    surfaceDistort:    0.03,
-    surfaceFrequency:  1.5,
-    speed:             0.003,
-    surfaceSpeed:      0.002,
-    numberOfWaves:     3.0,
+  // ── Score 40-54: "Slimebag" — blobby organic, rolling surface ──
+  slimebag: {
+    name: 'Slimebag',
+    distort:           0.52,
+    frequency:         1.52,
+    surfaceDistort:    0.15,    // 3 ÷ 20
+    surfaceFrequency:  0.38,    // 0.64 × 0.6
+    speed:             0.0017,  // 0.33 ÷ 200
+    surfaceSpeed:      0.0017,
+    numberOfWaves:     1,
     surfacePoleAmount: 1,
     gooPoleAmount:     1,
-    roughness:         0.1,
-    metalness:         0,
-    clearcoat:         1.0,
-    clearcoatRoughness: 0.3,
-    envMapIntensity:   1.5,
-    transmission:      0.1,
+    roughness:         0.31,
+    metalness:         0.1,
+    clearcoat:         0,
+    clearcoatRoughness: 0,
+    envMapIntensity:   0.95,
+    ior:               2.33,
+    transmission:      0,
   },
 
-  // Score 100: "Freshwater" inspired — near-perfect sphere, glass, pristine
-  {
-    score: 100,
-    distort:           0.05,
-    frequency:         3.0,
-    surfaceDistort:    0.01,
-    surfaceFrequency:  2.0,
-    speed:             0.002,
-    surfaceSpeed:      0.001,
-    numberOfWaves:     2.0,
+  // ── Score 25-39: "Firefly" — agitated, rough, fast surface ──
+  firefly: {
+    name: 'Firefly',
+    distort:           0.26,
+    frequency:         0.49,
+    surfaceDistort:    0.12,    // 2.4 ÷ 20
+    surfaceFrequency:  0.11,    // 0.19 × 0.6
+    speed:             0.0098,  // 1.95 ÷ 200
+    surfaceSpeed:      0.0074,  // 1.47 ÷ 200
+    numberOfWaves:     1,
     surfacePoleAmount: 1,
-    gooPoleAmount:     1,
-    roughness:         0.02,
+    gooPoleAmount:     0,       // No pole attenuation = more distortion at poles
+    roughness:         1,
     metalness:         0,
-    clearcoat:         1.0,
-    clearcoatRoughness: 0.1,
-    envMapIntensity:   2.0,
-    transmission:      0.4,
-    ior:               1.5,
+    clearcoat:         0,
+    clearcoatRoughness: 0,
+    envMapIntensity:   0,
+    transmission:      0,
   },
+
+  // ── Score 10-24: "Rosebud" — extreme surface waves, organic chaos ──
+  rosebud: {
+    name: 'Rosebud',
+    distort:           0.38,
+    frequency:         0.09,
+    surfaceDistort:    0.2,     // 3.97 ÷ 20
+    surfaceFrequency:  0.31,    // 0.51 × 0.6
+    speed:             0.005,   // 1 ÷ 200
+    surfaceSpeed:      0.0005,  // 0.1 ÷ 200
+    numberOfWaves:     6.13,
+    surfacePoleAmount: 0.51,
+    gooPoleAmount:     0.45,
+    roughness:         1,
+    metalness:         0,
+    clearcoat:         0,
+    clearcoatRoughness: 0.14,
+    envMapIntensity:   0,
+    transmission:      0,
+  },
+
+  // ── Score 0-9: "Devour" — extreme surface chaos, dark, distressed ──
+  devour: {
+    name: 'Devour',
+    distort:           0,
+    frequency:         1.19,
+    surfaceDistort:    0.5,     // 10 ÷ 20
+    surfaceFrequency:  0.11,    // 0.19 × 0.6
+    speed:             0.0015,  // 0.29 ÷ 200
+    surfaceSpeed:      0.01,    // 1.99 ÷ 200
+    numberOfWaves:     0.07,
+    surfacePoleAmount: 0,
+    gooPoleAmount:     1,
+    roughness:         0.86,
+    metalness:         0.28,
+    clearcoat:         1,
+    clearcoatRoughness: 0,
+    envMapIntensity:   0.87,
+    transmission:      0,
+  },
+}
+
+// Score ranges → preset mapping
+const SCORE_RANGES = [
+  { min: 95,  preset: 'freshwater' },
+  { min: 85,  preset: 'blackhole' },
+  { min: 70,  preset: 'silkworm' },
+  { min: 55,  preset: 'ghost' },
+  { min: 40,  preset: 'slimebag' },
+  { min: 25,  preset: 'firefly' },
+  { min: 10,  preset: 'rosebud' },
+  { min: 0,   preset: 'devour' },
 ]
 
 // ------------------------------------------------------------ INTERPOLATION
-// Smoothly blend between the two nearest anchor presets based on score
 
 function lerp(a, b, t) {
   return a + (b - a) * t
 }
 
-function interpolatePresets(score) {
+function getPresetForScore(score) {
   const clamped = Math.max(0, Math.min(100, score))
 
-  // Find the two anchors to interpolate between
-  let lower = SCORE_ANCHORS[0]
-  let upper = SCORE_ANCHORS[SCORE_ANCHORS.length - 1]
+  // Find the range we're in and the next range up
+  let currentRange = SCORE_RANGES[SCORE_RANGES.length - 1]
+  let nextRange = null
 
-  for (let i = 0; i < SCORE_ANCHORS.length - 1; i++) {
-    if (clamped >= SCORE_ANCHORS[i].score && clamped <= SCORE_ANCHORS[i + 1].score) {
-      lower = SCORE_ANCHORS[i]
-      upper = SCORE_ANCHORS[i + 1]
+  for (let i = 0; i < SCORE_RANGES.length; i++) {
+    if (clamped >= SCORE_RANGES[i].min) {
+      currentRange = SCORE_RANGES[i]
+      nextRange = i > 0 ? SCORE_RANGES[i - 1] : null
       break
     }
   }
 
-  // How far between the two anchors (0-1)
-  const range = upper.score - lower.score
-  const t = range > 0 ? (clamped - lower.score) / range : 0
+  const current = BLOBMIXER_PRESETS[currentRange.preset]
 
-  // Interpolate every numeric property
-  const result = {}
-  const keys = new Set([...Object.keys(lower), ...Object.keys(upper)])
+  // If at the top of the range or no next range, use preset directly
+  if (!nextRange) return { ...current }
+
+  // Interpolate between current and next preset based on position within range
+  const next = BLOBMIXER_PRESETS[nextRange.preset]
+  const rangeSize = nextRange.min - currentRange.min
+  const t = rangeSize > 0 ? (clamped - currentRange.min) / rangeSize : 0
+
+  const result = { name: current.name }
+  const keys = new Set([...Object.keys(current), ...Object.keys(next)])
   for (const key of keys) {
-    if (key === 'score') continue
-    const a = lower[key] ?? 0
-    const b = upper[key] ?? a
+    if (key === 'name') continue
+    const a = current[key] ?? 0
+    const b = next[key] ?? a
     result[key] = lerp(a, b, t)
   }
 
@@ -173,9 +250,9 @@ class OrbManager extends BaseManager {
 
   _calculateConfig(record) {
     const { score, quality } = record
+    const preset = getPresetForScore(score)
 
-    // Interpolate between blobmixer-derived anchor presets based on exact score
-    const preset = interpolatePresets(score)
+    console.log(`[OrbManager] Score: ${score} → Preset: ${preset.name}`)
 
     return {
       ...preset,
