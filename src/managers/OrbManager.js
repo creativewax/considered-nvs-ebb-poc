@@ -5,8 +5,9 @@ import { EVENTS } from '../constants/events.js'
 import { QUALITY_COLOURS } from '../constants/colours.js'
 
 // ------------------------------------------------------------ ORB PRESETS
-// Each preset has unique displacement, colour, and tendril config.
-// Tendrils are metallic structures growing from the sphere surface.
+// Coloured LIGHTS paint the orb (blobmixer approach), not material colour.
+// lightKey = primary colour (upper right), lightFill = secondary (left),
+// lightRim = accent (behind). Creates rich gradient blending across surface.
 
 const ORB_PRESETS = {
 
@@ -16,8 +17,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 1, gooPoleAmount: 1, twist: 0, twistFrequency: 1.0,
     roughness: 0, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0,
     envMapIntensity: 5, transmission: 0.5, ior: 2.0,
-    color: '#88DDC0',
+    lightKey: '#88DDC0', lightFill: '#44AEC6', lightRim: '#E8DCC8',
     tendrilCount: 20, tendrilLength: 0.15, tendrilThickness: 0.006,
+    color: '#ffffff',
   },
 
   very_good: {
@@ -26,8 +28,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 1, gooPoleAmount: 1, twist: 0.1, twistFrequency: 0.7,
     roughness: 0.1, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.1,
     envMapIntensity: 3.5, transmission: 0.2,
-    color: '#3DAA7A',
+    lightKey: '#3DAA7A', lightFill: '#88DDC0', lightRim: '#44AEC6',
     tendrilCount: 30, tendrilLength: 0.2, tendrilThickness: 0.007,
+    color: '#ffffff',
   },
 
   good: {
@@ -36,8 +39,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 1, gooPoleAmount: 1, twist: 0.2, twistFrequency: 0.6,
     roughness: 0.15, metalness: 0, clearcoat: 0.9, clearcoatRoughness: 0.15,
     envMapIntensity: 4.0, transmission: 0.1,
-    color: '#44AEC6',
+    lightKey: '#44AEC6', lightFill: '#3DAA7A', lightRim: '#7BAFAA',
     tendrilCount: 40, tendrilLength: 0.25, tendrilThickness: 0.008,
+    color: '#ffffff',
   },
 
   moderate: {
@@ -46,8 +50,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.8, gooPoleAmount: 1, twist: 0.3, twistFrequency: 0.55,
     roughness: 0.12, metalness: 0.4, clearcoat: 1, clearcoatRoughness: 0.1,
     envMapIntensity: 3.5, transmission: 0,
-    color: '#7BAFAA',
+    lightKey: '#7BAFAA', lightFill: '#D4A84B', lightRim: '#44AEC6',
     tendrilCount: 50, tendrilLength: 0.3, tendrilThickness: 0.009,
+    color: '#ffffff',
   },
 
   fair: {
@@ -56,8 +61,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.8, gooPoleAmount: 0.8, twist: 0.4, twistFrequency: 0.5,
     roughness: 0.2, metalness: 0.15, clearcoat: 1, clearcoatRoughness: 0.25,
     envMapIntensity: 3.5, transmission: 0.2,
-    color: '#D4A84B',
+    lightKey: '#D4A84B', lightFill: '#E8834A', lightRim: '#7BAFAA',
     tendrilCount: 60, tendrilLength: 0.35, tendrilThickness: 0.01,
+    color: '#ffffff',
   },
 
   restless: {
@@ -66,8 +72,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.6, gooPoleAmount: 0.7, twist: 0.5, twistFrequency: 0.45,
     roughness: 0.25, metalness: 0.1, clearcoat: 0.7, clearcoatRoughness: 0.3,
     envMapIntensity: 2.5, transmission: 0,
-    color: '#E8834A',
+    lightKey: '#E8834A', lightFill: '#D4A84B', lightRim: '#D0566C',
     tendrilCount: 75, tendrilLength: 0.4, tendrilThickness: 0.01,
+    color: '#ffffff',
   },
 
   poor: {
@@ -76,8 +83,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.5, gooPoleAmount: 0.5, twist: 0.6, twistFrequency: 0.4,
     roughness: 0.2, metalness: 0.7, clearcoat: 1, clearcoatRoughness: 0,
     envMapIntensity: 3.0, transmission: 0,
-    color: '#C23A52',
+    lightKey: '#D0566C', lightFill: '#E8834A', lightRim: '#6B3FA0',
     tendrilCount: 90, tendrilLength: 0.45, tendrilThickness: 0.011,
+    color: '#ffffff',
   },
 
   very_poor: {
@@ -86,8 +94,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.3, gooPoleAmount: 0.3, twist: 0.7, twistFrequency: 0.35,
     roughness: 0.4, metalness: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.1,
     envMapIntensity: 2.5, transmission: 0,
-    color: '#8B2252',
+    lightKey: '#8B2252', lightFill: '#D0566C', lightRim: '#6B3FA0',
     tendrilCount: 100, tendrilLength: 0.5, tendrilThickness: 0.012,
+    color: '#ffffff',
   },
 
   disrupted: {
@@ -96,8 +105,9 @@ const ORB_PRESETS = {
     surfacePoleAmount: 0.2, gooPoleAmount: 0.2, twist: 0.8, twistFrequency: 0.35,
     roughness: 0.5, metalness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.1,
     envMapIntensity: 2.5, transmission: 0,
-    color: '#5C2D91',
+    lightKey: '#6B3FA0', lightFill: '#8B2252', lightRim: '#D0566C',
     tendrilCount: 120, tendrilLength: 0.6, tendrilThickness: 0.012,
+    color: '#ffffff',
   },
 }
 

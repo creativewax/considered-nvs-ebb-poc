@@ -249,33 +249,34 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    // Blobmixer-style multi-light rig with coloured spots
-    const ambient = new THREE.AmbientLight(0xffffff, 0.15)
+    // Blobmixer approach: coloured lights paint gradients across the surface.
+    // The orb material stays white — light colours create the palette blending.
+    const ambient = new THREE.AmbientLight(0xffffff, 0.12)
     this._scene.add(ambient)
 
-    // Key light — warm white, strong, from upper right
-    const key = new THREE.SpotLight(0xffeedd, 1.0)
-    key.position.set(4, 5, 5)
-    key.angle = Math.PI / 4
-    key.penumbra = 1
-    key.decay = 0.5
-    this._scene.add(key)
+    // Key light — upper right (will be coloured per preset)
+    this._keyLight = new THREE.SpotLight(0xffffff, 1.2)
+    this._keyLight.position.set(4, 5, 5)
+    this._keyLight.angle = Math.PI / 4
+    this._keyLight.penumbra = 1
+    this._keyLight.decay = 0.5
+    this._scene.add(this._keyLight)
 
-    // Fill light — cool blue, softer, from left
-    const fill = new THREE.SpotLight(0x88aacc, 0.5)
-    fill.position.set(-5, 2, 3)
-    fill.angle = Math.PI / 3
-    fill.penumbra = 1
-    fill.decay = 0.5
-    this._scene.add(fill)
+    // Fill light — left side (second colour)
+    this._fillLight = new THREE.SpotLight(0xffffff, 0.8)
+    this._fillLight.position.set(-5, 2, 3)
+    this._fillLight.angle = Math.PI / 3
+    this._fillLight.penumbra = 1
+    this._fillLight.decay = 0.5
+    this._scene.add(this._fillLight)
 
-    // Rim light — from behind/below for edge definition
-    const rim = new THREE.SpotLight(0xffffff, 0.3)
-    rim.position.set(0, -4, -4)
-    rim.angle = Math.PI / 3
-    rim.penumbra = 1
-    rim.decay = 0.5
-    this._scene.add(rim)
+    // Rim light — behind/below (third colour, subtle)
+    this._rimLight = new THREE.SpotLight(0xffffff, 0.4)
+    this._rimLight.position.set(0, -4, -4)
+    this._rimLight.angle = Math.PI / 3
+    this._rimLight.penumbra = 1
+    this._rimLight.decay = 0.5
+    this._scene.add(this._rimLight)
   }
 
   // ------------------------------------------------------------
@@ -377,6 +378,10 @@ export class OrbScene {
     }
     if (config.speed != null) this._speed = config.speed
     if (config.surfaceSpeed != null) this._surfaceSpeed = config.surfaceSpeed
+    // Set light colours immediately
+    if (config.lightKey && this._keyLight) this._keyLight.color.set(config.lightKey)
+    if (config.lightFill && this._fillLight) this._fillLight.color.set(config.lightFill)
+    if (config.lightRim && this._rimLight) this._rimLight.color.set(config.lightRim)
   }
 
   _updateTendrils(config) {
@@ -463,6 +468,20 @@ export class OrbScene {
 
     // Tendril structures
     this._updateTendrils(config)
+
+    // Light colours — paint the orb with gradient blending
+    if (config.lightKey && this._keyLight) {
+      const kc = new THREE.Color(config.lightKey)
+      gsap.to(this._keyLight.color, { r: kc.r, g: kc.g, b: kc.b, duration: 0.8, ease: 'power2.inOut' })
+    }
+    if (config.lightFill && this._fillLight) {
+      const fc = new THREE.Color(config.lightFill)
+      gsap.to(this._fillLight.color, { r: fc.r, g: fc.g, b: fc.b, duration: 0.8, ease: 'power2.inOut' })
+    }
+    if (config.lightRim && this._rimLight) {
+      const rc = new THREE.Color(config.lightRim)
+      gsap.to(this._rimLight.color, { r: rc.r, g: rc.g, b: rc.b, duration: 0.8, ease: 'power2.inOut' })
+    }
 
     // Scale
     if (config.scale != null) {

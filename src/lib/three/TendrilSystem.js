@@ -117,13 +117,12 @@ export class TendrilSystem {
     const count = config.tendrilCount ?? 60
     const length = config.tendrilLength ?? 0.3
     const thickness = config.tendrilThickness ?? 0.01
-    const color = config.color ?? '#ffffff'
+    const color = config.lightKey ?? config.color ?? '#ffffff'
 
     // Rebuild if count changed
     if (count !== this._count) {
       this.build(count, length, thickness, color)
     } else if (this._mesh) {
-      // Just update material colour
       this._mesh.material.color.set(color)
     }
   }
