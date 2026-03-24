@@ -30,7 +30,14 @@ export class AmbientEngine {
   start() {
     if (this._playing) return
 
+    this._startedAt  = Date.now()
     this._ctx        = new (window.AudioContext || window.webkitAudioContext)()
+
+    // Resume suspended AudioContext (browser autoplay policy)
+    if (this._ctx.state === 'suspended') {
+      this._ctx.resume()
+    }
+
     this._masterGain = this._ctx.createGain()
     this._filter     = this._ctx.createBiquadFilter()
 
@@ -61,6 +68,9 @@ export class AmbientEngine {
 
   stop() {
     if (!this._playing || !this._ctx) return
+
+    // Debounce — ignore stop() within 150ms of start() (AnimatePresence remount)
+    if (this._startedAt && Date.now() - this._startedAt < 150) return
 
     const now = this._ctx.currentTime
     this._masterGain.gain.setValueAtTime(this._masterGain.gain.value, now)

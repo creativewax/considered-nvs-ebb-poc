@@ -47,7 +47,13 @@ class SoundManager extends BaseManager {
   stop() {
     if (!this._state.playing) return
 
+    // Engine handles debounce internally — if stop arrives too soon
+    // after start (AnimatePresence remount), it will be ignored
     this._engine?.stop()
+
+    // Check if engine actually stopped (debounce may have blocked it)
+    if (this._engine?._playing) return
+
     this._setState({ playing: false })
   }
 
