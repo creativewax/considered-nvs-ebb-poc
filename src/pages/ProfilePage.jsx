@@ -32,53 +32,49 @@ export default function ProfilePage() {
   return (
     <BasePage>
       <div className="page-content">
-        <h1 className="page-title">Profile</h1>
-
-        {/* ---- USER DETAILS ---- */}
+        {/* ---- USER AVATAR + DETAILS (centred) ---- */}
         <div style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: 'var(--space-md)',
-          marginBottom: 'var(--space-lg)',
+          textAlign: 'center',
+          marginBottom: 'var(--space-xl)',
+          paddingTop: 'var(--space-md)',
         }}>
-          <div style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            background: 'var(--colour-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 'var(--text-lg)',
+          <img
+            src="https://i.pravatar.cc/120?img=47"
+            alt="Jane Doe"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              marginBottom: 'var(--space-md)',
+              border: '3px solid var(--colour-border-subtle)',
+            }}
+          />
+          <p style={{
+            fontSize: 'var(--text-xl)',
             fontWeight: 'var(--weight-medium)',
-            color: 'var(--colour-text-secondary)',
-            flexShrink: 0,
+            color: 'var(--colour-text)',
+            lineHeight: 'var(--leading-tight)',
           }}>
-            JD
-          </div>
-          <div>
-            <p style={{
-              fontSize: 'var(--text-lg)',
-              fontWeight: 'var(--weight-medium)',
-              color: 'var(--colour-text)',
-              lineHeight: 'var(--leading-tight)',
-            }}>
-              Jane Doe
-            </p>
-            <p style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--colour-text-secondary)',
-            }}>
-              jane.doe@example.com
-            </p>
-            <p style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--colour-text-muted)',
-              marginTop: 2,
-            }}>
-              Member since January 2026
-            </p>
-          </div>
+            Jane Doe
+          </p>
+          <p style={{
+            fontSize: 'var(--text-sm)',
+            color: 'var(--colour-text-secondary)',
+            marginTop: 2,
+          }}>
+            jane.doe@example.com
+          </p>
+          <p style={{
+            fontSize: 'var(--text-xs)',
+            color: 'var(--colour-text-muted)',
+            marginTop: 4,
+          }}>
+            Member since January 2026
+          </p>
         </div>
 
         <div className="card-list">
