@@ -188,33 +188,22 @@ export class OrbScene {
       // 1. beginnormal_vertex — set objectNormal BEFORE defaultnormal uses it
       // 2. begin_vertex — set displaced position
 
-      // Step 1: Replace beginnormal_vertex to compute displaced normal early
-      // The default chunk is: vec3 objectNormal = normal;
-      // We add our displacement + normal recalculation here
+      // ── TEST: simplest possible vertex displacement ──
+      // If this creates a wobbly sphere, the chunk replacement works
+      // and the issue is in our noise functions.
+      // If this shows a smooth sphere, chunk replacement is broken.
       shader.vertexShader = shader.vertexShader.replace(
         '#include <beginnormal_vertex>',
         /* glsl */ `
-          // ── CUSTOM DISPLACEMENT + NORMAL ──
-          vec3 displacedPosition = position + normalize(normal) * f(position);
-
-          vec3 objectNormal = normal;
-          if (fixNormals == 1.0) {
-            float offset = 0.5 / 512.0;
-            vec3 tangent = orthogonal(normal);
-            vec3 bitangent = normalize(cross(normal, tangent));
-            vec3 neighbour1 = position + tangent * offset;
-            vec3 neighbour2 = position + bitangent * offset;
-            vec3 displacedNeighbour1 = neighbour1 + normal * f(neighbour1);
-            vec3 displacedNeighbour2 = neighbour2 + normal * f(neighbour2);
-            vec3 displacedTangent = displacedNeighbour1 - displacedPosition;
-            vec3 displacedBitangent = displacedNeighbour2 - displacedPosition;
-            objectNormal = normalize(cross(displacedTangent, displacedBitangent));
-          }
+          // TEST: displace vertices with simple sine wave
+          float testDisp = sin(position.x * 10.0 + time) * 0.3
+                         + sin(position.y * 8.0 + time * 1.3) * 0.2
+                         + sin(position.z * 12.0 - time * 0.7) * 0.15;
+          vec3 displacedPosition = position + normalize(normal) * testDisp;
+          vec3 objectNormal = normal; // simplified — no normal recalc for test
         `
       )
 
-      // Step 2: Replace begin_vertex to use displaced position
-      // The default chunk is: vec3 transformed = vec3( position );
       shader.vertexShader = shader.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `
