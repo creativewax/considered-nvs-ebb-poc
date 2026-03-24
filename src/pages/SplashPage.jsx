@@ -55,6 +55,16 @@ export default function SplashPage() {
 
         <Spirograph />
 
+        {/* Solid white circle behind the dots */}
+        <motion.div
+          className={styles.whiteCircle}
+          variants={FADE_VARIANTS}
+          initial="hidden"
+          animate="visible"
+          custom={0.6}
+        />
+
+        {/* Subtle radial gradient overlay from Figma export */}
         <motion.img
           src={dotsBkgdSvg}
           alt=""

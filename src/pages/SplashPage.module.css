@@ -37,6 +37,15 @@
   overflow: hidden;
 }
 
+.whiteCircle {
+  position: absolute;
+  width: 310px;
+  height: 310px;
+  border-radius: var(--radius-full);
+  background: white;
+  z-index: 1;
+}
+
 .spirograph {
   position: absolute;
   width: 380px;
