@@ -1,0 +1,22 @@
+/* src/components/common/MetricsRow.module.css */
+
+.row {
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-md) 0;
+  gap: var(--space-sm);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.sublabel {
+  font-size: var(--text-xs);
+  color: var(--colour-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

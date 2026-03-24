@@ -1,0 +1,37 @@
+/* src/pages/HealthPage.module.css */
+
+.qualityHeader {
+  text-align: center;
+  margin-bottom: var(--space-sm);
+}
+
+.qualityLabel {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+}
+
+.qualityScore {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-semibold);
+  color: var(--colour-text);
+  line-height: var(--leading-tight);
+}
+
+.qualitySub {
+  font-size: var(--text-base);
+  color: var(--colour-text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.reportLink {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: var(--space-md);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
