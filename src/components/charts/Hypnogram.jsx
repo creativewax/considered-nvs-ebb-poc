@@ -82,11 +82,15 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
       const stageChanges = hasNext && nextSeg.y !== y
 
       // ── HORIZONTAL LINE (chunky) ──
+      // Start after the previous S-curve ends, stop before the next one begins
+      const hStart = (i > 0 && segs[i - 1].y !== y) ? x1 + CURVE_SPREAD : x1
+      const hEnd = stageChanges ? x2 - CURVE_SPREAD : x2
+
       ctx.strokeStyle = STAGE_COLOURS[stage]
       ctx.lineWidth = LINE_WIDTH
       ctx.beginPath()
-      ctx.moveTo(x1, y)
-      ctx.lineTo(stageChanges ? x2 - CURVE_SPREAD : x2, y)
+      ctx.moveTo(hStart, y)
+      ctx.lineTo(hEnd, y)
       ctx.stroke()
 
       // ── S-CURVE TRANSITION (thinner, bezier) ──
@@ -99,12 +103,11 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
         ctx.strokeStyle = grad
         ctx.lineWidth = CURVE_WIDTH
         ctx.beginPath()
-        ctx.moveTo(x2 - CURVE_SPREAD, y)
-        // Cubic bezier S-curve: control points pull horizontally to create a smooth sigmoid
+        ctx.moveTo(hEnd, y)
         ctx.bezierCurveTo(
-          x2, y,             // cp1: pull right at current height
-          x2, nextY,         // cp2: pull right at next height
-          x2 + CURVE_SPREAD, nextY  // end: start of next horizontal
+          x2, y,
+          x2, nextY,
+          x2 + CURVE_SPREAD, nextY
         )
         ctx.stroke()
       }

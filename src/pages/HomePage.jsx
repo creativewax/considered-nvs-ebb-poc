@@ -21,18 +21,16 @@ export default function HomePage() {
       {/* ── HERO SECTION — sleep summary with pixi blob behind ── */}
       <div style={{
         position: 'relative',
-        overflow: 'hidden',
         marginBottom: 'var(--space-md)',
       }}>
-        {/* Pixi organic blob — contained behind the summary */}
+        {/* Pixi organic blob — 0.7 scale, no crop */}
         <div style={{
           position: 'absolute',
-          width: '100%',
-          aspectRatio: '1',
+          width: '500px',
+          height: '500px',
           top: '50%',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
-          opacity: 0.4,
+          transform: 'translate(-50%, -50%) scale(0.7)',
           pointerEvents: 'none',
         }}>
           <PixiBackground />
