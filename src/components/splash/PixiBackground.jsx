@@ -3,6 +3,37 @@
 import { useEffect, useRef } from 'react'
 import { Application, Mesh, MeshGeometry, Shader, GlProgram } from 'pixi.js'
 
+// ------------------------------------------------------------ BLOB SETTINGS
+// Tweak these to adjust the organic shape appearance
+
+export const BLOB_SETTINGS = {
+  // Shape
+  noiseScale:     1.2,    // Lobe count — lower = fewer/broader, higher = more/bumpier
+  baseRadius:     0.70,   // Overall blob size (0-1 UV space)
+  noiseAmount:    0.26,   // How far lobes extend in/out
+  octaves:        2,      // Shape smoothness — 1 = very smooth, 3+ = textured
+  breatheSpeed:   0.10,   // How fast the shape breathes
+
+  // Edge
+  edgeSoftness:   0.012,  // Edge crispness — lower = sharper
+
+  // Inner cutout (where white circle sits)
+  innerRadius:    0.42,
+  innerSoftness:  0.025,
+
+  // Colours (#hex → vec3 RGB 0-1)
+  colour1: [0.243, 0.227, 0.431],  // #3E3A6E — purple/indigo
+  colour2: [0.922, 0.667, 0.306],  // #EBAA4E — gold
+  colour3: [0.902, 0.435, 0.396],  // #E66F65 — coral
+
+  // Colour zones
+  blendWidth:     0.4,    // Colour boundary softness — lower = sharper zones
+  driftSpeed:     0.06,   // How fast colour zones rotate
+
+  // Vividness
+  saturation:     1.4,    // Colour boost — 1.0 = natural, higher = richer
+}
+
 // ------------------------------------------------------------ VERTEX SHADER
 
 const VERTEX_SRC = `
@@ -30,6 +61,21 @@ const FRAGMENT_SRC = `
   in vec2 vTextureCoord;
   uniform float uTime;
   uniform vec2 uResolution;
+
+  // ── SETTINGS (injected as uniforms) ──
+  uniform float uNoiseScale;
+  uniform float uBaseRadius;
+  uniform float uNoiseAmount;
+  uniform float uBreatheSpeed;
+  uniform float uEdgeSoftness;
+  uniform float uInnerRadius;
+  uniform float uInnerSoftness;
+  uniform vec3 uColour1;
+  uniform vec3 uColour2;
+  uniform vec3 uColour3;
+  uniform float uBlendWidth;
+  uniform float uDriftSpeed;
+  uniform float uSaturation;
 
   #define PI 3.14159265359
   #define TWO_PI 6.28318530718
@@ -102,34 +148,27 @@ const FRAGMENT_SRC = `
   // Lower noiseScale = fewer, broader lobes (smoother silhouette)
 
   float getBlobRadius(float angle, float time) {
-    float noiseScale = 1.2;
     vec3 nc = vec3(
-      cos(angle) * noiseScale,
-      sin(angle) * noiseScale,
-      time * 0.10
+      cos(angle) * uNoiseScale,
+      sin(angle) * uNoiseScale,
+      time * uBreatheSpeed
     );
-    float baseRadius = 0.70;
-    float noiseAmt = 0.26;
-    return baseRadius + fbm(nc) * noiseAmt;
+    return uBaseRadius + fbm(nc) * uNoiseAmount;
   }
 
   // ── ANGULAR COLOUR — 3 defined zones at 1/3 intervals ──
   // Each colour owns a sector, with a narrow blend at the boundaries
 
   vec3 getColour(float angle, float time) {
-    vec3 purple = vec3(0.42, 0.247, 0.627);   // #6B3FA0
-    vec3 teal   = vec3(0.176, 0.353, 0.306);   // #2D5A4E
-    vec3 orange = vec3(0.91, 0.514, 0.29);     // #E8834A
-
     // Slowly rotate the colour zones
-    float drift = time * 0.06;
+    float drift = time * uDriftSpeed;
 
     // Normalise angle to 0..TWO_PI
     float a = mod(angle + PI + drift, TWO_PI);
 
     // Three sectors, each ~2.09 radians (120 degrees)
     float sector = TWO_PI / 3.0;
-    float blendWidth = 0.4;  // Narrow transition zone between colours
+    float blendWidth = uBlendWidth;
 
     // Distance into each sector (0 = centre of sector, increases toward edges)
     float d0 = abs(mod(a - sector * 0.0 + PI, TWO_PI) - PI);
@@ -142,7 +181,7 @@ const FRAGMENT_SRC = `
     float w2 = pow(1.0 - smoothstep(0.0, sector * 0.5 + blendWidth, d2), 2.0);
 
     float total = w0 + w1 + w2 + 0.001;
-    return (purple * w0 + teal * w1 + orange * w2) / total;
+    return (uColour1 * w0 + uColour2 * w1 + uColour3 * w2) / total;
   }
 
   // ── MAIN ──
@@ -161,14 +200,11 @@ const FRAGMENT_SRC = `
     // Blob boundary at this angle
     float blobR = getBlobRadius(angle, t);
 
-    // Sharp edge — tight smoothstep for defined boundary
-    float edgeSoftness = 0.012;
-    float mask = smoothstep(blobR + edgeSoftness, blobR - edgeSoftness, dist);
+    // Sharp edge
+    float mask = smoothstep(blobR + uEdgeSoftness, blobR - uEdgeSoftness, dist);
 
     // Cut out inner circle (where the white circle sits)
-    float innerRadius = 0.42;
-    float innerSoftness = 0.025;
-    float innerCut = smoothstep(innerRadius - innerSoftness, innerRadius + innerSoftness, dist);
+    float innerCut = smoothstep(uInnerRadius - uInnerSoftness, uInnerRadius + uInnerSoftness, dist);
 
     // Final mask: outside inner circle, inside blob boundary
     float finalMask = mask * innerCut;
@@ -178,7 +214,7 @@ const FRAGMENT_SRC = `
 
     // Boost saturation to keep colours deep and vivid
     float grey = dot(colour, vec3(0.299, 0.587, 0.114));
-    colour = mix(vec3(grey), colour, 1.4);
+    colour = mix(vec3(grey), colour, uSaturation);
 
     gl_FragColor = vec4(colour, finalMask);
   }
@@ -229,12 +265,26 @@ export default function PixiBackground() {
         fragment: FRAGMENT_SRC,
       })
 
+      const s = BLOB_SETTINGS
       const shader = Shader.from({
         gl: glProgram,
         resources: {
           uniforms: {
-            uTime: { value: 0, type: 'f32' },
-            uResolution: { value: new Float32Array([w, h]), type: 'vec2<f32>' },
+            uTime:          { value: 0, type: 'f32' },
+            uResolution:    { value: new Float32Array([w, h]), type: 'vec2<f32>' },
+            uNoiseScale:    { value: s.noiseScale, type: 'f32' },
+            uBaseRadius:    { value: s.baseRadius, type: 'f32' },
+            uNoiseAmount:   { value: s.noiseAmount, type: 'f32' },
+            uBreatheSpeed:  { value: s.breatheSpeed, type: 'f32' },
+            uEdgeSoftness:  { value: s.edgeSoftness, type: 'f32' },
+            uInnerRadius:   { value: s.innerRadius, type: 'f32' },
+            uInnerSoftness: { value: s.innerSoftness, type: 'f32' },
+            uColour1:       { value: new Float32Array(s.colour1), type: 'vec3<f32>' },
+            uColour2:       { value: new Float32Array(s.colour2), type: 'vec3<f32>' },
+            uColour3:       { value: new Float32Array(s.colour3), type: 'vec3<f32>' },
+            uBlendWidth:    { value: s.blendWidth, type: 'f32' },
+            uDriftSpeed:    { value: s.driftSpeed, type: 'f32' },
+            uSaturation:    { value: s.saturation, type: 'f32' },
           },
         },
       })
