@@ -47,8 +47,10 @@ export default function ResultsPage() {
     <BasePage>
       <ResultsHeader record={selectedRecord} />
       <OrbCanvas config={config} quality={selectedRecord.quality} />
-      <MetricsRow record={selectedRecord} />
       <div className="page-content">
+        <div className="card" style={{ marginBottom: 'var(--space-sm)' }}>
+          <MetricsRow record={selectedRecord} />
+        </div>
         <Hypnogram
           timeline={selectedRecord.stageTimeline}
           bedtime={selectedRecord.bedtime}

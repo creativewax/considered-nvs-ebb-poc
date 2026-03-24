@@ -20,7 +20,7 @@
   right: 0;
   top: calc(-1 * var(--space-xl));
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(6px);
   background: rgba(255, 255, 255, 0.1);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 30%);

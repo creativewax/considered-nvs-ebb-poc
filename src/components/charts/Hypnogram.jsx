@@ -11,10 +11,11 @@ import styles from './Hypnogram.module.css'
 
 const STAGES = ['awake', 'rem', 'light', 'deep']
 const STAGE_Y = { awake: 0, rem: 1, light: 2, deep: 3 }
-const PADDING_LEFT = 0
-const PADDING_TOP = 4
-const PADDING_BOTTOM = 4
-const LINE_WIDTH = 6
+const PADDING_LEFT = 4
+const PADDING_RIGHT = 4
+const PADDING_TOP = 6
+const PADDING_BOTTOM = 6
+const LINE_WIDTH = 8
 const CONNECTOR_COLOUR = 'rgba(174, 174, 178, 0.3)'
 const REVEAL_DURATION = 1500
 
@@ -55,16 +56,18 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
     const yForStage = (stage) => PADDING_TOP + STAGE_Y[stage] * stageHeight
 
     ctx.lineWidth = LINE_WIDTH
-    ctx.lineCap = 'round'
+    ctx.lineCap = 'butt'
     ctx.lineJoin = 'round'
+
+    const chartW = w - PADDING_LEFT - PADDING_RIGHT
 
     for (let i = 0; i < tl.length; i++) {
       const seg = tl[i]
       const startNorm = normaliseMins(timeToMins(seg.start), bedMins)
       const endNorm = normaliseMins(timeToMins(seg.end), bedMins)
 
-      const x1 = PADDING_LEFT + (startNorm / totalSpan) * (w - PADDING_LEFT)
-      const x2 = PADDING_LEFT + (endNorm / totalSpan) * (w - PADDING_LEFT)
+      const x1 = PADDING_LEFT + (startNorm / totalSpan) * chartW
+      const x2 = PADDING_LEFT + (endNorm / totalSpan) * chartW
       const y = yForStage(seg.stage)
 
       ctx.strokeStyle = STAGE_COLOURS[seg.stage]
@@ -82,7 +85,7 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
           grad.addColorStop(0, STAGE_COLOURS[seg.stage])
           grad.addColorStop(1, STAGE_COLOURS[timeline[i + 1].stage])
           ctx.strokeStyle = grad
-          ctx.lineWidth = 3
+          ctx.lineWidth = 5
           ctx.beginPath()
           ctx.moveTo(x2, y)
           ctx.lineTo(x2, nextY)
