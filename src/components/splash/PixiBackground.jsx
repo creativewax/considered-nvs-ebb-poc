@@ -84,53 +84,65 @@ const FRAGMENT_SRC = `
     return 42.0 * dot(m * m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
   }
 
-  // ── FRACTAL BROWNIAN MOTION (3 octaves for smooth organic feel) ──
+  // ── FRACTAL BROWNIAN MOTION (2 octaves — smoother, fewer bumps) ──
 
   float fbm(vec3 p) {
     float value = 0.0;
-    float amplitude = 0.5;
+    float amplitude = 0.55;
     float frequency = 1.0;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
       value += amplitude * snoise(p * frequency);
       frequency *= 2.0;
-      amplitude *= 0.5;
+      amplitude *= 0.45;
     }
     return value;
   }
 
   // ── BLOB BOUNDARY ──
-  // Maps angle to a circle in noise space (seamless wraparound)
-  // then modulates radius with fBm
+  // Lower noiseScale = fewer, broader lobes (smoother silhouette)
 
   float getBlobRadius(float angle, float time) {
-    float noiseScale = 1.8;
+    float noiseScale = 1.2;
     vec3 nc = vec3(
       cos(angle) * noiseScale,
       sin(angle) * noiseScale,
-      time * 0.12
+      time * 0.10
     );
-    float baseRadius = 0.72;
-    float noiseAmt = 0.24;
+    float baseRadius = 0.70;
+    float noiseAmt = 0.26;
     return baseRadius + fbm(nc) * noiseAmt;
   }
 
-  // ── ANGULAR COLOUR BLEND ──
-  // Noise-driven blending of 4 palette colours around the shape
+  // ── ANGULAR COLOUR — 3 defined zones at 1/3 intervals ──
+  // Each colour owns a sector, with a narrow blend at the boundaries
 
   vec3 getColour(float angle, float time) {
-    vec3 purple = vec3(0.42, 0.247, 0.627);
-    vec3 teal   = vec3(0.176, 0.353, 0.306);
-    vec3 orange = vec3(0.91, 0.514, 0.29);
-    vec3 coral  = vec3(0.816, 0.337, 0.424);
+    vec3 purple = vec3(0.42, 0.247, 0.627);   // #6B3FA0
+    vec3 teal   = vec3(0.176, 0.353, 0.306);   // #2D5A4E
+    vec3 orange = vec3(0.91, 0.514, 0.29);     // #E8834A
 
-    float n1 = snoise(vec3(cos(angle) * 0.8, sin(angle) * 0.8, time * 0.1)) * 0.5 + 0.5;
-    float n2 = snoise(vec3(cos(angle + 1.5) * 0.8, sin(angle + 1.5) * 0.8, time * 0.12 + 5.0)) * 0.5 + 0.5;
+    // Slowly rotate the colour zones
+    float drift = time * 0.06;
 
-    vec3 blend1 = mix(purple, orange, n1);
-    vec3 blend2 = mix(teal, coral, n2);
+    // Normalise angle to 0..TWO_PI
+    float a = mod(angle + PI + drift, TWO_PI);
 
-    float n3 = snoise(vec3(cos(angle) * 0.5, sin(angle) * 0.5, time * 0.08 + 10.0)) * 0.5 + 0.5;
-    return mix(blend1, blend2, n3);
+    // Three sectors, each ~2.09 radians (120 degrees)
+    float sector = TWO_PI / 3.0;
+    float blendWidth = 0.4;  // Narrow transition zone between colours
+
+    // Distance into each sector (0 = centre of sector, increases toward edges)
+    float d0 = abs(mod(a - sector * 0.0 + PI, TWO_PI) - PI);
+    float d1 = abs(mod(a - sector * 1.0 + PI, TWO_PI) - PI);
+    float d2 = abs(mod(a - sector * 2.0 + PI, TWO_PI) - PI);
+
+    // Weights — sharper falloff (pow 2) for more defined zones
+    float w0 = pow(1.0 - smoothstep(0.0, sector * 0.5 + blendWidth, d0), 2.0);
+    float w1 = pow(1.0 - smoothstep(0.0, sector * 0.5 + blendWidth, d1), 2.0);
+    float w2 = pow(1.0 - smoothstep(0.0, sector * 0.5 + blendWidth, d2), 2.0);
+
+    float total = w0 + w1 + w2 + 0.001;
+    return (purple * w0 + teal * w1 + orange * w2) / total;
   }
 
   // ── MAIN ──
@@ -149,8 +161,8 @@ const FRAGMENT_SRC = `
     // Blob boundary at this angle
     float blobR = getBlobRadius(angle, t);
 
-    // Smooth edge
-    float edgeSoftness = 0.035;
+    // Sharp edge — tight smoothstep for defined boundary
+    float edgeSoftness = 0.012;
     float mask = smoothstep(blobR + edgeSoftness, blobR - edgeSoftness, dist);
 
     // Cut out inner circle (where the white circle sits)
