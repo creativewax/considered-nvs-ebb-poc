@@ -1,11 +1,13 @@
 // src/pages/ProfilePage.jsx
 
+import BasePage from '../components/common/BasePage'
+
 export default function ProfilePage() {
   return (
-    <div className="page">
+    <BasePage>
       <div className="page-content">
         <h1>Profile</h1>
       </div>
-    </div>
+    </BasePage>
   )
 }

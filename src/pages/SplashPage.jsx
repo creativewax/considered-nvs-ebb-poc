@@ -1,6 +1,7 @@
 // src/pages/SplashPage.jsx
 
 import { motion } from 'framer-motion'
+import BasePage from '../components/common/BasePage'
 import PixiBackground from '../components/splash/PixiBackground'
 import logoSvg from '../assets/Logo.svg'
 import dotsSvg from '../assets/Dots.svg'
@@ -53,7 +54,7 @@ function Spirograph() {
 
 export default function SplashPage() {
   return (
-    <div className={styles.splash}>
+    <BasePage className={styles.splash}>
       {/* ── HEADING ── */}
       <motion.h1
         className={styles.heading}
@@ -62,7 +63,7 @@ export default function SplashPage() {
         animate="visible"
         custom={0.2}
       >
-        Ebb: Living Between Waves
+        <strong>Ebb:</strong> Living Between Waves
       </motion.h1>
 
       {/* ── ORB STACK ── */}
@@ -114,10 +115,7 @@ export default function SplashPage() {
         <p className={styles.bodyPrimary}>
           Every itch has its ebb. Track the flow, visualise the patterns, find peace in the spaces between flares. Your journey from hives to rest, rendered as living art.
         </p>
-        <p className={styles.bodyPrimary}>
-          When AI meets wearables meets social art, chronic illness becomes visible, validated, and valuable.
-        </p>
       </motion.div>
-    </div>
+    </BasePage>
   )
 }

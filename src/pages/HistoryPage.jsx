@@ -1,11 +1,13 @@
 // src/pages/HistoryPage.jsx
 
+import BasePage from '../components/common/BasePage'
+
 export default function HistoryPage() {
   return (
-    <div className="page">
+    <BasePage>
       <div className="page-content">
         <h1>History</h1>
       </div>
-    </div>
+    </BasePage>
   )
 }

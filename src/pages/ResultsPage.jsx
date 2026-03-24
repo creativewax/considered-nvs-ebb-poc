@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom'
 import { useSleep } from '../hooks/useSleep'
 import { useOrb } from '../hooks/useOrb'
 import { useLogs } from '../hooks/useLogs'
+import BasePage from '../components/common/BasePage'
 import PageLoader from '../components/common/PageLoader'
 import { ResultsHeader } from '../components/results/ResultsHeader'
 import { OrbCanvas } from '../components/orb/OrbCanvas'
@@ -29,7 +30,7 @@ export default function ResultsPage() {
   if (!selectedRecord) return <PageLoader />
 
   return (
-    <div className="page">
+    <BasePage>
       <ResultsHeader record={selectedRecord} />
       <OrbCanvas config={config} quality={selectedRecord.quality} />
       <MetricsRow record={selectedRecord} />
@@ -42,6 +43,6 @@ export default function ResultsPage() {
         <InsightCards recordId={id} quality={selectedRecord.quality} />
         <ExpandableStats record={selectedRecord} entries={entries} />
       </div>
-    </div>
+    </BasePage>
   )
 }
