@@ -1,7 +1,7 @@
 // src/components/layout/BottomNav.jsx
 
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Home, Clock, Plus, User, Settings } from 'lucide-react'
+import { Home, Clock, Plus, Heart, Settings } from 'lucide-react'
 import { ROUTES } from '../../constants/routes'
 import styles from './BottomNav.module.css'
 
@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { icon: Home,     label: 'Home',    path: ROUTES.HOME    },
   { icon: Clock,    label: 'History', path: ROUTES.HISTORY },
   { icon: null,     label: 'Add',     path: null           }, // centre add button
-  { icon: User,     label: 'Profile', path: ROUTES.PROFILE },
+  { icon: Heart,    label: 'Health',   path: ROUTES.HEALTH  },
   { icon: Settings, label: 'Settings', path: ROUTES.PROFILE },
 ]
 
@@ -33,14 +33,15 @@ export default function BottomNav({ onAddClick }) {
         // Centre add button
         if (item.path === null) {
           return (
-            <button
-              key="add"
-              className={styles.addButton}
-              onClick={onAddClick}
-              aria-label="Add entry"
-            >
-              <Plus size={22} strokeWidth={2.5} />
-            </button>
+            <div key="add" className={styles.addButtonWrapper}>
+              <button
+                className={styles.addButton}
+                onClick={onAddClick}
+                aria-label="Add entry"
+              >
+                <Plus size={22} strokeWidth={2.5} />
+              </button>
+            </div>
           )
         }
 

@@ -4,6 +4,7 @@ export const ROUTES = {
   HOME:    '/',
   RESULTS: '/results/:id',
   HISTORY: '/history',
+  HEALTH:  '/health',
   PROFILE: '/profile',
 }
 

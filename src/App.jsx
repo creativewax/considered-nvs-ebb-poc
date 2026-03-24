@@ -12,6 +12,7 @@ import { ROUTES } from './constants/routes'
 const HomePage    = lazy(() => import('./pages/HomePage'))
 const ResultsPage = lazy(() => import('./pages/ResultsPage'))
 const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const HealthPage  = lazy(() => import('./pages/HealthPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 
 // ------------------------------------------------------------ APP
@@ -25,6 +26,7 @@ export default function App() {
             <Route path={ROUTES.HOME}    element={<HomePage />} />
             <Route path={ROUTES.RESULTS} element={<ResultsPage />} />
             <Route path={ROUTES.HISTORY} element={<HistoryPage />} />
+            <Route path={ROUTES.HEALTH}  element={<HealthPage />} />
             <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           </Route>
           <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
