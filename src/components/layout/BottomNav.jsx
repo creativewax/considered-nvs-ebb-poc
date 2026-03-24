@@ -23,7 +23,7 @@ export default function BottomNav({ onAddClick }) {
 
   const isActive = (path) => {
     if (!path) return false
-    if (path === ROUTES.HOME) return location.pathname === '/'
+    if (path === ROUTES.HOME) return location.pathname === ROUTES.HOME
     return location.pathname.startsWith(path)
   }
 

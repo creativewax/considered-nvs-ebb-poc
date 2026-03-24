@@ -220,9 +220,11 @@ a {
 }
 
 .page {
-  min-height: 100dvh;
-  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-lg));
+  min-height: 100%;
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-xl));
   padding-top: var(--safe-top);
+  position: relative;
+  overflow: visible;
 }
 
 .page-content {

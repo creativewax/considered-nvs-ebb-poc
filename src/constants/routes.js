@@ -1,8 +1,8 @@
 // src/constants/routes.js
 
 export const ROUTES = {
-  SPLASH:  '/splash',
-  HOME:    '/',
+  SPLASH:  '/',
+  HOME:    '/home',
   RESULTS: '/results/:id',
   HISTORY: '/history',
   HEALTH:  '/health',

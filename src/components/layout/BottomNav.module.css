@@ -4,23 +4,23 @@
 
 .nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(var(--bottom-nav-height) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: var(--colour-nav-bg);
+  bottom: var(--space-md);
+  left: var(--space-md);
+  right: var(--space-md);
+  height: var(--bottom-nav-height);
+  background: linear-gradient(180deg, #3A3A42 0%, var(--colour-nav-bg) 100%);
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: space-around;
   z-index: var(--z-nav);
+  padding-bottom: 0;
 }
 
 /* Desktop: contained within the phone frame */
 @media (min-width: 768px) {
   .nav {
     position: absolute;
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
 }
 
@@ -55,7 +55,7 @@
   height: 100%;
 }
 
-/* Notch — circular recess in the nav bar behind the raised button */
+/* Notch — circular recess behind the raised button, matches nav gradient */
 .addButtonWrapper::before {
   content: '';
   position: absolute;
@@ -65,8 +65,8 @@
   width: 70px;
   height: 70px;
   border-radius: var(--radius-full);
-  background: var(--colour-nav-bg);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #3A3A42 0%, var(--colour-nav-bg) 100%);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2);
   z-index: 0;
 }
 
