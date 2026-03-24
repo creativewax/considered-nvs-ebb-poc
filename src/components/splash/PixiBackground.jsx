@@ -81,6 +81,7 @@ const FRAGMENT_SRC = `
   uniform float uSaturation;
   uniform vec3 uPageBg;
   uniform float uShowCutout;
+  uniform vec2 uOrigin;
 
   #define PI 3.14159265359
   #define TWO_PI 6.28318530718
@@ -192,7 +193,7 @@ const FRAGMENT_SRC = `
   // ── MAIN ──
 
   void main() {
-    vec2 uv = (vTextureCoord - 0.5) * 2.0;
+    vec2 uv = (vTextureCoord - 0.5) * 2.0 - uOrigin;
 
     float dist = length(uv);
     float angle = atan(uv.y, uv.x);
@@ -228,7 +229,7 @@ const FRAGMENT_SRC = `
 
 // ------------------------------------------------------------ COMPONENT
 
-export default function PixiBackground({ showCutout = true }) {
+export default function PixiBackground({ showCutout = true, origin = [0, 0] }) {
   const containerRef = useRef(null)
   const appRef = useRef(null)
 
@@ -294,6 +295,7 @@ export default function PixiBackground({ showCutout = true }) {
             uSaturation:    { value: s.saturation, type: 'f32' },
             uPageBg:        { value: new Float32Array(s.pageBg), type: 'vec3<f32>' },
             uShowCutout:    { value: showCutout ? 1.0 : 0.0, type: 'f32' },
+            uOrigin:        { value: new Float32Array(origin), type: 'vec2<f32>' },
           },
         },
       })
