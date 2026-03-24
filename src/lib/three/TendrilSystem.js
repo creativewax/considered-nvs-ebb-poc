@@ -7,7 +7,7 @@ import * as THREE from 'three'
 
 // ------------------------------------------------------------ CONFIG
 
-const CUBES_PER_PATH = 48  // Very dense — many small cubes forming solid ribbons
+const CUBES_PER_PATH = 96  // Very dense — many small cubes forming solid ribbons
 
 // ------------------------------------------------------------ TENDRIL SYSTEM
 
@@ -34,15 +34,15 @@ export class TendrilSystem {
 
     // Small cube — sized to overlap with neighbours at CUBES_PER_PATH density
     const thickness = config.tendrilThickness ?? 0.01
-    const geo = new THREE.BoxGeometry(thickness * 2, thickness * 1.5, thickness * 2)
+    const geo = new THREE.BoxGeometry(thickness * 2, thickness * 2, thickness * 2)
 
     // Rich metallic material
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(config.lightKey ?? config.color ?? '#ffffff'),
-      roughness: 0.12,
-      metalness: 0.92,
+      roughness: 0.15,
+      metalness: 0.95,
       clearcoat: 1,
-      clearcoatRoughness: 0.03,
+      clearcoatRoughness: 0.25,
       envMapIntensity: 4.0,
     })
 
@@ -63,11 +63,11 @@ export class TendrilSystem {
         startPhi: phi,
         startTheta: theta,
         pathLength: config.tendrilLength ?? 0.3,
-        noiseOffset: Math.random() * 100,
-        heightBase: 0.01 + Math.random() * 0.03,
-        curvature: 0.8 + Math.random() * 2.0,
+        noiseOffset: Math.random() * config.tendrilCount * 10,
+        heightBase: (config.tendrilCount * 0.001) + Math.random() * (config.tendrilCount * 0.002),
+        curvature: (config.tendrilCount * 0.005) + Math.random() * 2.0,
         direction: Math.random() > 0.5 ? 1 : -1,  // CW or CCW wrap
-        tilt: (Math.random() - 0.5) * 0.6,  // Tilt the path up/down
+        tilt: (Math.random() - 0.5) * (config.tendrilCount * 0.05),  // Tilt the path up/down
       })
     }
 
