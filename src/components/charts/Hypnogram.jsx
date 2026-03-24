@@ -1,6 +1,6 @@
 // src/components/charts/Hypnogram.jsx
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import { STAGE_COLOURS } from '../../constants/colours'
 import { STAGE_NAMES } from '../../constants/sleep'
 import styles from './Hypnogram.module.css'
@@ -14,6 +14,9 @@ const STAGE_Y = { awake: 0, rem: 1, light: 2, deep: 3 }
 const PADDING_LEFT = 0
 const PADDING_TOP = 4
 const PADDING_BOTTOM = 4
+const LINE_WIDTH = 6
+const CONNECTOR_COLOUR = 'rgba(174, 174, 178, 0.3)'
+const REVEAL_DURATION = 1500
 
 // ------------------------------------------------------------
 // TIME HELPERS
@@ -45,6 +48,48 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
 
+  // ------------------------------------------------------------ DRAWING
+  const drawSegments = useCallback((ctx, w, h, tl, bedMins, totalSpan) => {
+    const chartH = h - PADDING_TOP - PADDING_BOTTOM
+    const stageHeight = chartH / (STAGES.length - 1)
+    const yForStage = (stage) => PADDING_TOP + STAGE_Y[stage] * stageHeight
+
+    ctx.lineWidth = LINE_WIDTH
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+
+    for (let i = 0; i < tl.length; i++) {
+      const seg = tl[i]
+      const startNorm = normaliseMins(timeToMins(seg.start), bedMins)
+      const endNorm = normaliseMins(timeToMins(seg.end), bedMins)
+
+      const x1 = PADDING_LEFT + (startNorm / totalSpan) * (w - PADDING_LEFT)
+      const x2 = PADDING_LEFT + (endNorm / totalSpan) * (w - PADDING_LEFT)
+      const y = yForStage(seg.stage)
+
+      ctx.strokeStyle = STAGE_COLOURS[seg.stage]
+      ctx.beginPath()
+      ctx.moveTo(x1, y)
+      ctx.lineTo(x2, y)
+      ctx.stroke()
+
+      // Vertical connector to next segment
+      if (i < tl.length - 1) {
+        const nextY = yForStage(tl[i + 1].stage)
+        if (nextY !== y) {
+          ctx.strokeStyle = CONNECTOR_COLOUR
+          ctx.lineWidth = 1.5
+          ctx.beginPath()
+          ctx.moveTo(x2, y)
+          ctx.lineTo(x2, nextY)
+          ctx.stroke()
+          ctx.lineWidth = LINE_WIDTH
+        }
+      }
+    }
+  }, [])
+
+  // ------------------------------------------------------------ ANIMATED RENDER
   useEffect(() => {
     if (!timeline?.length || !canvasRef.current || !containerRef.current) return
 
@@ -62,51 +107,41 @@ export function Hypnogram({ timeline, bedtime, wakeTime }) {
 
     const ctx = canvas.getContext('2d')
     ctx.scale(dpr, dpr)
-    ctx.clearRect(0, 0, w, h)
 
     const bedMins = timeToMins(bedtime)
     const wakeMins = timeToMins(wakeTime)
     const totalSpan = normaliseMins(wakeMins, bedMins)
 
-    const chartH = h - PADDING_TOP - PADDING_BOTTOM
-    const stageHeight = chartH / (STAGES.length - 1)
+    // Animate: left-to-right reveal over REVEAL_DURATION
+    let startTime = null
+    let frameId = null
 
-    const yForStage = (stage) => PADDING_TOP + STAGE_Y[stage] * stageHeight
+    function animateFrame(timestamp) {
+      if (!startTime) startTime = timestamp
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / REVEAL_DURATION, 1)
 
-    // Draw each segment
-    ctx.lineWidth = 2.5
-    ctx.lineCap = 'round'
+      ctx.clearRect(0, 0, w, h)
 
-    for (let i = 0; i < timeline.length; i++) {
-      const seg = timeline[i]
-      const startNorm = normaliseMins(timeToMins(seg.start), bedMins)
-      const endNorm = normaliseMins(timeToMins(seg.end), bedMins)
-
-      const x1 = PADDING_LEFT + (startNorm / totalSpan) * (w - PADDING_LEFT)
-      const x2 = PADDING_LEFT + (endNorm / totalSpan) * (w - PADDING_LEFT)
-      const y = yForStage(seg.stage)
-
-      ctx.strokeStyle = STAGE_COLOURS[seg.stage]
+      // Clip region reveals chart progressively
+      ctx.save()
       ctx.beginPath()
-      ctx.moveTo(x1, y)
-      ctx.lineTo(x2, y)
-      ctx.stroke()
+      ctx.rect(0, 0, w * progress, h)
+      ctx.clip()
 
-      // Vertical connector to next segment
-      if (i < timeline.length - 1) {
-        const nextY = yForStage(timeline[i + 1].stage)
-        if (nextY !== y) {
-          ctx.strokeStyle = 'rgba(174, 174, 178, 0.3)'
-          ctx.lineWidth = 1
-          ctx.beginPath()
-          ctx.moveTo(x2, y)
-          ctx.lineTo(x2, nextY)
-          ctx.stroke()
-          ctx.lineWidth = 2.5
-        }
+      drawSegments(ctx, w, h, timeline, bedMins, totalSpan)
+
+      ctx.restore()
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animateFrame)
       }
     }
-  }, [timeline, bedtime, wakeTime])
+
+    frameId = requestAnimationFrame(animateFrame)
+
+    return () => { if (frameId) cancelAnimationFrame(frameId) }
+  }, [timeline, bedtime, wakeTime, drawSegments])
 
   if (!timeline?.length) return null
 
