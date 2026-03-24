@@ -235,7 +235,7 @@ export default function PixiBackground() {
         resizeTo: container,
         backgroundAlpha: 0,
         antialias: true,
-        resolution: 1,
+        resolution: Math.min(window.devicePixelRatio, 2),
         autoDensity: true,
       })
 
@@ -245,6 +245,7 @@ export default function PixiBackground() {
       }
 
       appRef.current = app
+      app.canvas.style.background = 'transparent'
       container.appendChild(app.canvas)
 
       const w = app.screen.width

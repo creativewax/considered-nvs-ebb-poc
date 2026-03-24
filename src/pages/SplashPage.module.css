@@ -41,11 +41,11 @@
   flex-shrink: 0;
 }
 
-/* Pixi layer — centred on the svgStack, overflows to full container width */
+/* Pixi layer — fixed size, centred on the svgStack */
 .pixiLayer {
   position: absolute;
-  width: 100vw;
-  aspect-ratio: 1;
+  width: 500px;
+  height: 500px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -53,18 +53,12 @@
   pointer-events: none;
 }
 
-@media (min-width: 768px) {
-  .pixiLayer {
-    width: var(--max-width-desktop);
-  }
-}
-
 .whiteCircle {
   position: absolute;
   width: 310px;
   height: 310px;
   border-radius: var(--radius-full);
-  background: white;
+  background: var(--colour-bg);
   z-index: 1;
 }
 
