@@ -27,11 +27,13 @@ const DEFAULT_UNIFORMS = {
 }
 
 const TWEENED_UNIFORM_KEYS = [
-  'distort', 'frequency', 'surfaceDistort', 'surfaceFrequency', 'numberOfWaves',
+  'distort', 'frequency', 'surfaceDistort', 'surfaceFrequency',
+  'numberOfWaves', 'surfacePoleAmount', 'gooPoleAmount',
 ]
 
 const TWEENED_MATERIAL_KEYS = [
-  'roughness', 'clearcoat', 'clearcoatRoughness', 'envMapIntensity', 'transmission',
+  'roughness', 'metalness', 'clearcoat', 'clearcoatRoughness',
+  'envMapIntensity', 'transmission', 'ior',
 ]
 
 export class OrbScene {

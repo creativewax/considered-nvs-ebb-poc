@@ -4,80 +4,155 @@ import BaseManager from './BaseManager.js'
 import { EVENTS } from '../constants/events.js'
 import { QUALITY_COLOURS } from '../constants/colours.js'
 
-// ------------------------------------------------------------ ORB PRESETS
-// Each quality has a UNIQUE CHARACTER — not just "more chaos".
-// Inspired by blobmixer's approach: distinct combinations of
-// goo distortion, surface waves, wave count, and material properties
-// create totally different visual personalities.
+// ------------------------------------------------------------ BLOBMIXER-DERIVED PRESETS
+// These are based on REAL blobmixer presets from their source code.
+// We pick 5 anchor points across the 0-100 score range and interpolate.
+// Note: blobmixer uses different scales for some values. Key mappings:
+//   blobmixer speed ~1.0 = our speed ~0.005 (they use higher tick rates)
+//   blobmixer distort is already 0-1 range (same as ours)
+//   blobmixer surfaceDistort 0-10 range = our 0-0.5 range (÷20)
+//   blobmixer frequency 0-5 range = our 0-3 range (×0.6)
 
-const ORB_PRESETS = {
-  // ── EXCELLENT: near-perfect sphere, glass-like, serene ──
-  // Barely deformed. You can still see it's a sphere. Crystal ball feel.
-  excellent: {
-    distort:           0.06,
-    frequency:         3.0,
-    surfaceDistort:    0.01,
-    surfaceFrequency:  4.0,
-    speed:             0.002,
-    surfaceSpeed:      0.001,
-    numberOfWaves:     3.0,
-    roughness:         0.05,
-    clearcoat:         1.0,
-    clearcoatRoughness: 0.15,
-    envMapIntensity:   1.8,
-    transmission:      0.3,
+const SCORE_ANCHORS = [
+  // Score 0-15: "Devour" inspired — extreme surface chaos, dark, agitated
+  {
+    score: 0,
+    distort:           0.65,
+    frequency:         0.7,     // Low = big blobby distortions
+    surfaceDistort:    0.5,     // High surface waves
+    surfaceFrequency:  0.12,    // Low freq = large rolling waves
+    speed:             0.008,
+    surfaceSpeed:      0.01,
+    numberOfWaves:     0.5,     // Very few waves — big undulations
+    surfacePoleAmount: 0,
+    gooPoleAmount:     1,
+    roughness:         0.35,
+    metalness:         0.1,
+    clearcoat:         0.5,
+    clearcoatRoughness: 0.86,
+    envMapIntensity:   0.9,
+    transmission:      0,
   },
 
-  // ── GOOD: gentle organic undulations ──
-  // Clearly a sphere with soft organic bumps. Calm, flowing.
-  good: {
-    distort:           0.18,
-    frequency:         2.2,
-    surfaceDistort:    0.05,
-    surfaceFrequency:  3.0,
+  // Score 25: "Slimebag" inspired — blobby, organic, chaotic surface
+  {
+    score: 25,
+    distort:           0.52,
+    frequency:         0.9,
+    surfaceDistort:    0.15,
+    surfaceFrequency:  0.4,
+    speed:             0.005,
+    surfaceSpeed:      0.005,
+    numberOfWaves:     3.0,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
+    roughness:         0.25,
+    metalness:         0.05,
+    clearcoat:         0.7,
+    clearcoatRoughness: 0.7,
+    envMapIntensity:   1.0,
+    transmission:      0,
+  },
+
+  // Score 50: "Ghost" inspired — flowing, translucent, wave ridges
+  {
+    score: 50,
+    distort:           0.35,
+    frequency:         1.2,
+    surfaceDistort:    0.07,
+    surfaceFrequency:  0.8,
+    speed:             0.004,
+    surfaceSpeed:      0.003,
+    numberOfWaves:     5.5,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
+    roughness:         0.14,
+    metalness:         0,
+    clearcoat:         1.0,
+    clearcoatRoughness: 0.5,
+    envMapIntensity:   1.3,
+    transmission:      0.15,
+  },
+
+  // Score 75: "Blackhole" inspired — smooth, subtle, elegant deformation
+  {
+    score: 75,
+    distort:           0.15,
+    frequency:         1.8,
+    surfaceDistort:    0.03,
+    surfaceFrequency:  1.5,
     speed:             0.003,
     surfaceSpeed:      0.002,
-    numberOfWaves:     4.0,
+    numberOfWaves:     3.0,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
     roughness:         0.1,
+    metalness:         0,
     clearcoat:         1.0,
-    clearcoatRoughness: 0.4,
+    clearcoatRoughness: 0.3,
     envMapIntensity:   1.5,
     transmission:      0.1,
   },
 
-  // ── FAIR: noticeable deformation, surface ridges ──
-  // Still spherical but clearly disturbed. Wave ridges create texture.
-  fair: {
-    distort:           0.35,
-    frequency:         1.8,
-    surfaceDistort:    0.15,
+  // Score 100: "Freshwater" inspired — near-perfect sphere, glass, pristine
+  {
+    score: 100,
+    distort:           0.05,
+    frequency:         3.0,
+    surfaceDistort:    0.01,
     surfaceFrequency:  2.0,
-    speed:             0.005,
-    surfaceSpeed:      0.003,
-    numberOfWaves:     7.0,
-    roughness:         0.18,
-    clearcoat:         0.85,
-    clearcoatRoughness: 0.55,
-    envMapIntensity:   1.2,
-    transmission:      0,
+    speed:             0.002,
+    surfaceSpeed:      0.001,
+    numberOfWaves:     2.0,
+    surfacePoleAmount: 1,
+    gooPoleAmount:     1,
+    roughness:         0.02,
+    metalness:         0,
+    clearcoat:         1.0,
+    clearcoatRoughness: 0.1,
+    envMapIntensity:   2.0,
+    transmission:      0.4,
+    ior:               1.5,
   },
+]
 
-  // ── POOR: heavily distorted, agitated ──
-  // Lost its spherical shape. Blobby bulges, spiky ridges, fast movement.
-  poor: {
-    distort:           0.6,
-    frequency:         1.2,
-    surfaceDistort:    0.3,
-    surfaceFrequency:  1.5,
-    speed:             0.008,
-    surfaceSpeed:      0.005,
-    numberOfWaves:     10.0,
-    roughness:         0.28,
-    clearcoat:         0.6,
-    clearcoatRoughness: 0.8,
-    envMapIntensity:   0.9,
-    transmission:      0,
-  },
+// ------------------------------------------------------------ INTERPOLATION
+// Smoothly blend between the two nearest anchor presets based on score
+
+function lerp(a, b, t) {
+  return a + (b - a) * t
+}
+
+function interpolatePresets(score) {
+  const clamped = Math.max(0, Math.min(100, score))
+
+  // Find the two anchors to interpolate between
+  let lower = SCORE_ANCHORS[0]
+  let upper = SCORE_ANCHORS[SCORE_ANCHORS.length - 1]
+
+  for (let i = 0; i < SCORE_ANCHORS.length - 1; i++) {
+    if (clamped >= SCORE_ANCHORS[i].score && clamped <= SCORE_ANCHORS[i + 1].score) {
+      lower = SCORE_ANCHORS[i]
+      upper = SCORE_ANCHORS[i + 1]
+      break
+    }
+  }
+
+  // How far between the two anchors (0-1)
+  const range = upper.score - lower.score
+  const t = range > 0 ? (clamped - lower.score) / range : 0
+
+  // Interpolate every numeric property
+  const result = {}
+  const keys = new Set([...Object.keys(lower), ...Object.keys(upper)])
+  for (const key of keys) {
+    if (key === 'score') continue
+    const a = lower[key] ?? 0
+    const b = upper[key] ?? a
+    result[key] = lerp(a, b, t)
+  }
+
+  return result
 }
 
 // ------------------------------------------------------------ ORB MANAGER
@@ -96,11 +171,11 @@ class OrbManager extends BaseManager {
     })
   }
 
-  // ------------------------------------------------------------ CONFIG
-
   _calculateConfig(record) {
-    const { quality } = record
-    const preset = ORB_PRESETS[quality] || ORB_PRESETS.good
+    const { score, quality } = record
+
+    // Interpolate between blobmixer-derived anchor presets based on exact score
+    const preset = interpolatePresets(score)
 
     return {
       ...preset,
