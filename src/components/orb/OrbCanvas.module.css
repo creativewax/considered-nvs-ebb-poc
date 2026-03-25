@@ -2,8 +2,14 @@
 
 .container {
   width: 100%;
-  aspect-ratio: 1;
+  height: 300px;
   margin: 0;
   position: relative;
   touch-action: none;
+}
+
+@media (min-width: 768px) {
+  .container {
+    height: 360px;
+  }
 }
