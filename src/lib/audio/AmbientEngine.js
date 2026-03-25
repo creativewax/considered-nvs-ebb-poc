@@ -252,11 +252,24 @@ export class AmbientEngine {
     this._quality  = 'good'
     this._startedAt = 0
     this._nodes    = null
+    this._stopTimer = null   // Pending dispose timeout
+    this._stopping = false   // True during fade-out, before dispose
   }
 
   // ------------------------------------------------------------ START
 
   async start() {
+    // If mid-fade-out, cancel the dispose and fade back in
+    if (this._stopping && this._nodes) {
+      clearTimeout(this._stopTimer)
+      this._stopTimer = null
+      this._stopping = false
+      this._playing = true
+      this._startedAt = Date.now()
+      this._nodes.master.gain.rampTo(1, MORPH_TIME)
+      return
+    }
+
     if (this._playing) return
     this._startedAt = Date.now()
 
@@ -390,35 +403,50 @@ export class AmbientEngine {
   // ------------------------------------------------------------ STOP
 
   stop() {
-    if (!this._playing || !this._nodes) return
+    if ((!this._playing && !this._stopping) || !this._nodes) return
     if (Date.now() - this._startedAt < 200) return
 
-    const { pad, shimmer, noise, sub, master } = this._nodes
+    // If already stopping, don't double-stop
+    if (this._stopping) return
 
-    // Fade out
-    master.gain.rampTo(0, 2)
-
-    // Capture nodes locally — this._nodes may be nulled by a second stop() call
-    const nodes = this._nodes
-    this._nodes = null
+    this._nodes.master.gain.rampTo(0, 2)
     this._playing = false
+    this._stopping = true
 
-    setTimeout(() => {
-      try { pad.releaseAll() } catch (_) {}
-      try { shimmer.triggerRelease() } catch (_) {}
-      try { noise.stop() } catch (_) {}
-      try { sub.triggerRelease() } catch (_) {}
+    // Nodes stay alive during fade-out so start() can cancel and fade back in
+    const nodes = this._nodes
+    this._stopTimer = setTimeout(() => {
+      this._stopTimer = null
+      this._stopping = false
+
+      try { nodes.pad.releaseAll() } catch (_) {}
+      try { nodes.shimmer.triggerRelease() } catch (_) {}
+      try { nodes.noise.stop() } catch (_) {}
+      try { nodes.sub.triggerRelease() } catch (_) {}
 
       Object.values(nodes).forEach(node => {
         try { node.dispose() } catch (_) {}
       })
+
+      // Only null nodes if they haven't been replaced by a new start()
+      if (this._nodes === nodes) this._nodes = null
     }, 2500)
   }
 
   // ------------------------------------------------------------ DISPOSE
 
   dispose() {
-    this.stop()
+    if (this._stopTimer) clearTimeout(this._stopTimer)
+    this._stopping = false
+
+    if (this._nodes) {
+      Object.values(this._nodes).forEach(node => {
+        try { node.dispose() } catch (_) {}
+      })
+      this._nodes = null
+    }
+
+    this._playing = false
   }
 
   // ------------------------------------------------------------ SET QUALITY

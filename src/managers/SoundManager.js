@@ -82,7 +82,6 @@ class SoundManager extends BaseManager {
   _stopEngine() {
     if (!this._state.playing) return
     this._engine?.stop()
-    if (this._engine?._playing) return
     this._setState({ playing: false })
   }
 
