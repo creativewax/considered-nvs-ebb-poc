@@ -13,6 +13,8 @@ class SoundManager extends BaseManager {
     super()
     this._state  = { playing: false, enabled: false, quality: null }
     this._engine = null
+    this._refs   = 0          // How many pages currently want sound
+    this._stopTimer = null    // Delayed stop — cancelled if a new page mounts quickly
 
     // When a record is selected, update the engine quality
     this._onEvent(EVENTS.SLEEP_RECORD_SELECTED, (record) => {
@@ -38,15 +40,28 @@ class SoundManager extends BaseManager {
     }
   }
 
-  // Resume — called by pages on mount, only starts if user previously enabled
-  async resume() {
+  // Claim — page mounts and wants sound. Cancels any pending stop.
+  async claim() {
+    this._refs++
+    if (this._stopTimer) {
+      clearTimeout(this._stopTimer)
+      this._stopTimer = null
+    }
     if (!this._state.enabled || this._state.playing) return
     await this._startEngine()
   }
 
-  // Pause — called by pages on unmount, fades out but keeps enabled flag
-  pause() {
-    this._stopEngine()
+  // Release — page unmounts. Only stops after a brief grace period
+  // so navigating between sound pages doesn't interrupt playback.
+  release() {
+    this._refs = Math.max(0, this._refs - 1)
+    if (this._refs > 0) return
+
+    // Grace period — if another page claims within 200ms, sound continues
+    this._stopTimer = setTimeout(() => {
+      this._stopTimer = null
+      if (this._refs === 0) this._stopEngine()
+    }, 200)
   }
 
   async _startEngine() {
@@ -77,8 +92,10 @@ class SoundManager extends BaseManager {
   }
 
   dispose() {
+    if (this._stopTimer) clearTimeout(this._stopTimer)
     this._engine?.dispose()
     this._engine = null
+    this._refs = 0
     this._setState({ playing: false, enabled: false })
   }
 }

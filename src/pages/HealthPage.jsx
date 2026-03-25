@@ -23,14 +23,14 @@ export default function HealthPage() {
   const navigate = useNavigate()
   const { records, loadRecords, selectRecord } = useSleep()
   const { config } = useOrb()
-  const { playing, toggle, resume, pause } = useSound()
+  const { playing, toggle, claim, release } = useSound()
 
   useEffect(() => { loadRecords() }, [])
 
-  // Resume sound on mount if user previously enabled it, pause on unmount
+  // Claim sound on mount, release on unmount
   useEffect(() => {
-    resume()
-    return () => pause()
+    claim()
+    return () => release()
   }, [])
 
   const latest = records && records.length > 0 ? records[0] : null

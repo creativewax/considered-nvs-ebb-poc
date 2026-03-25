@@ -12,8 +12,8 @@ export function useSound() {
 
   return {
     ...state,
-    toggle: () => soundManager.toggle(),
-    resume: () => soundManager.resume(),
-    pause:  () => soundManager.pause(),
+    toggle:  () => soundManager.toggle(),
+    claim:   () => soundManager.claim(),
+    release: () => soundManager.release(),
   }
 }

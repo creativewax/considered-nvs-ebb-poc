@@ -24,15 +24,15 @@ export default function ResultsPage() {
   const { selectedRecord, selectRecord } = useSleep()
   const { config } = useOrb()
   const { entries, loadEntries } = useLogs()
-  const { playing, enabled, toggle, resume, pause } = useSound()
+  const { playing, toggle, claim, release } = useSound()
 
   useEffect(() => { selectRecord(id) }, [id])
   useEffect(() => { if (id) loadEntries(id) }, [id])
 
-  // Resume sound on mount if user previously enabled it, pause on unmount
+  // Claim sound on mount, release on unmount
   useEffect(() => {
-    resume()
-    return () => pause()
+    claim()
+    return () => release()
   }, [])
 
   // Browser tab title
