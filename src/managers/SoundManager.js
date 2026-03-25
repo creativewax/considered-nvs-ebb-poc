@@ -11,7 +11,7 @@ import { EVENTS } from '../constants/events.js'
 class SoundManager extends BaseManager {
   constructor() {
     super()
-    this._state  = { playing: false, quality: null }
+    this._state  = { playing: false, enabled: false, quality: null }
     this._engine = null
 
     // When a record is selected, update the engine quality
@@ -27,34 +27,47 @@ class SoundManager extends BaseManager {
   // METHODS
   // ------------------------------------------------------------
 
-  async play() {
+  // Toggle — user explicitly enables/disables sound
+  async toggle() {
+    if (this._state.enabled) {
+      this._setState({ enabled: false })
+      this._stopEngine()
+    } else {
+      this._setState({ enabled: true })
+      await this._startEngine()
+    }
+  }
+
+  // Resume — called by pages on mount, only starts if user previously enabled
+  async resume() {
+    if (!this._state.enabled || this._state.playing) return
+    await this._startEngine()
+  }
+
+  // Pause — called by pages on unmount, fades out but keeps enabled flag
+  pause() {
+    this._stopEngine()
+  }
+
+  async _startEngine() {
     if (this._state.playing) return
 
     if (!this._engine) {
       this._engine = new AmbientEngine()
     }
 
-    // Set quality before start so the engine initialises with the right preset
     if (this._state.quality) {
       this._engine._quality = this._state.quality
     }
 
-    // start() is async — awaits Tone.start() for Chrome autoplay policy
     await this._engine.start()
-
     this._setState({ playing: true })
   }
 
-  stop() {
+  _stopEngine() {
     if (!this._state.playing) return
-
-    // Engine handles debounce internally — if stop arrives too soon
-    // after start (AnimatePresence remount), it will be ignored
     this._engine?.stop()
-
-    // Check if engine actually stopped (debounce may have blocked it)
     if (this._engine?._playing) return
-
     this._setState({ playing: false })
   }
 
@@ -66,7 +79,7 @@ class SoundManager extends BaseManager {
   dispose() {
     this._engine?.dispose()
     this._engine = null
-    this._setState({ playing: false })
+    this._setState({ playing: false, enabled: false })
   }
 }
 

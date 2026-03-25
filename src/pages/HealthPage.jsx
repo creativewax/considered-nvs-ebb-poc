@@ -23,9 +23,15 @@ export default function HealthPage() {
   const navigate = useNavigate()
   const { records, loadRecords, selectRecord } = useSleep()
   const { config } = useOrb()
-  const { playing, play, stop } = useSound()
+  const { playing, toggle, resume, pause } = useSound()
 
   useEffect(() => { loadRecords() }, [])
+
+  // Resume sound on mount if user previously enabled it, pause on unmount
+  useEffect(() => {
+    resume()
+    return () => pause()
+  }, [])
 
   const latest = records && records.length > 0 ? records[0] : null
 
@@ -33,8 +39,6 @@ export default function HealthPage() {
   useEffect(() => {
     if (latest?.id) selectRecord(latest.id)
   }, [latest?.id])
-
-  const toggleSound = () => playing ? stop() : play()
 
   if (!latest) {
     return (
@@ -53,7 +57,7 @@ export default function HealthPage() {
 
   return (
     <BasePage>
-      <ResultsHeader record={latest} playing={playing} onToggleSound={toggleSound} />
+      <ResultsHeader record={latest} playing={playing} onToggleSound={toggle} />
       <div className="page-content">
 
         {/* ---- ORB ---- */}

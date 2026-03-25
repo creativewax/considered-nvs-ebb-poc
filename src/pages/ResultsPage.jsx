@@ -24,10 +24,16 @@ export default function ResultsPage() {
   const { selectedRecord, selectRecord } = useSleep()
   const { config } = useOrb()
   const { entries, loadEntries } = useLogs()
-  const { playing, play, stop } = useSound()
+  const { playing, enabled, toggle, resume, pause } = useSound()
 
   useEffect(() => { selectRecord(id) }, [id])
   useEffect(() => { if (id) loadEntries(id) }, [id])
+
+  // Resume sound on mount if user previously enabled it, pause on unmount
+  useEffect(() => {
+    resume()
+    return () => pause()
+  }, [])
 
   // Browser tab title
   useEffect(() => {
@@ -35,13 +41,11 @@ export default function ResultsPage() {
     document.title = quality ? `Ebb — ${quality.charAt(0).toUpperCase() + quality.slice(1)} Sleep` : 'Ebb — Results'
   }, [selectedRecord?.quality])
 
-  const toggleSound = () => playing ? stop() : play()
-
   if (!selectedRecord) return <PageLoader />
 
   return (
     <BasePage>
-      <ResultsHeader record={selectedRecord} playing={playing} onToggleSound={toggleSound} />
+      <ResultsHeader record={selectedRecord} playing={playing} onToggleSound={toggle} />
       <OrbCanvas config={config} quality={selectedRecord.quality} />
       <div className="page-content">
         <Hypnogram
