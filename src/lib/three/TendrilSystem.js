@@ -143,7 +143,7 @@ export class TendrilSystem {
 
         // Scale: taper at ends, fuller in the middle
         const taper = Math.sin(t * Math.PI)  // 0 at ends, 1 in middle
-        const scale = 0.3 + taper * 0.7 + Math.sin(noisePhase + t * 3) * 0.5
+        const scale = (0.3 + taper * 0.7 + Math.sin(noisePhase + t * 3) * 0.5) + cubeAmp
         this._dummy.scale.set(scale, scale * 0.7, scale)
 
         this._dummy.updateMatrix()
