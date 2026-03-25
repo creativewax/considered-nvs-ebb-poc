@@ -161,14 +161,13 @@ export class OrbScene {
   _initGeometryAndMaterial() {
     const geometry = new THREE.SphereGeometry(1, 512, 512)
 
-    // Match blobmixer's MeshPhysicalMaterial setup exactly:
-    // Low roughness (0.14) + full clearcoat + moderate clearcoat roughness
-    // = wet, organic, dual-layer PBR look
+    // Metallic base so specular reflections carry light colour (not white).
+    // Low clearcoat to avoid adding a white reflective wash on top.
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
-      roughness: 0.14,
-      metalness: 0,
-      clearcoat: 1,
+      roughness: 0.25,
+      metalness: 0.6,
+      clearcoat: 0.3,
       clearcoatRoughness: 0.7,
       envMapIntensity: 0.8,
       reflectivity: 0.5,
