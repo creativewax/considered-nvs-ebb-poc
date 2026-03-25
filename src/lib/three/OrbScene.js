@@ -539,33 +539,42 @@ export class OrbScene {
     this._onTap = () => {
       if (!this._shader) return
 
-      const base    = this._baseDistort ?? this._shader.uniforms.distort.value
-      const pulseTo = Math.min(base + 0.15, 1.0)
+      const u = this._shader.uniforms
+      const baseDistort = this._baseDistort ?? u.distort.value
+      const baseSurface = u.surfaceDistort?.value ?? 0.1
+      const baseTwist = u.twist?.value ?? 0
 
-      // Kill any existing pulse tweens but not config tweens — use a dedicated ref
       if (this._pulseTween) this._pulseTween.kill()
 
-      const proxy = { distort: this._shader.uniforms.distort.value }
+      // Ripple: push distort + surface + twist outward, then ease back
+      const proxy = {
+        distort: u.distort.value,
+        surfaceDistort: baseSurface,
+        twist: baseTwist,
+      }
 
       this._pulseTween = gsap.to(proxy, {
-        distort: pulseTo,
-        duration: 0.12,
+        distort: Math.min(baseDistort + 0.3, 1.2),
+        surfaceDistort: baseSurface + 0.15,
+        twist: baseTwist + 0.3,
+        duration: 0.15,
         ease: 'power2.out',
         onUpdate: () => {
-          if (this._shader?.uniforms?.distort) {
-            this._shader.uniforms.distort.value = proxy.distort
-          }
+          if (u.distort) u.distort.value = proxy.distort
+          if (u.surfaceDistort) u.surfaceDistort.value = proxy.surfaceDistort
+          if (u.twist) u.twist.value = proxy.twist
         },
         onComplete: () => {
-          // Ease back to the baseline
           this._pulseTween = gsap.to(proxy, {
-            distort: base,
-            duration: 0.5,
+            distort: baseDistort,
+            surfaceDistort: baseSurface,
+            twist: baseTwist,
+            duration: 0.8,
             ease: 'power2.inOut',
             onUpdate: () => {
-              if (this._shader?.uniforms?.distort) {
-                this._shader.uniforms.distort.value = proxy.distort
-              }
+              if (u.distort) u.distort.value = proxy.distort
+              if (u.surfaceDistort) u.surfaceDistort.value = proxy.surfaceDistort
+              if (u.twist) u.twist.value = proxy.twist
             },
           })
         },
