@@ -33,17 +33,17 @@ export class TendrilSystem {
     this._totalInstances = totalInstances
 
     // Small cube — sized to overlap with neighbours at CUBES_PER_PATH density
-    const thickness = config.tendrilThickness * 5.0 ?? 0.01
-    const geo = new THREE.BoxGeometry(thickness * 0.25, thickness, thickness * 0.25)
+    const thickness = config.tendrilThickness * 2.0 ?? 0.01
+    const geo = new THREE.BoxGeometry(thickness, thickness, thickness)
 
     // Metallic but not mirror-shiny — picks up coloured light
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(config.lightKey ?? config.color ?? '#ffffff'),
-      roughness: 0.4,
-      metalness: 0.7,
-      clearcoat: 0.3,
-      clearcoatRoughness: 0.5,
-      envMapIntensity: 1.0,
+      roughness: 0.05,
+      metalness: 0.95,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.15,
+      envMapIntensity: 2.0,
     })
 
     if (this._scene.environment) {
@@ -124,7 +124,7 @@ export class TendrilSystem {
 
         // Scale: taper at ends, fuller in the middle
         const taper = Math.sin(t * Math.PI)  // 0 at ends, 1 in middle
-        const scale = 0.3 + taper * 0.7 + Math.sin(noisePhase + t * 3) * 0.1
+        const scale = 0.3 + taper * 0.7 + Math.sin(noisePhase + t * 3) * 0.5
         this._dummy.scale.set(scale, scale * 0.7, scale)
 
         this._dummy.updateMatrix()

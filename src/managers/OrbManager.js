@@ -17,15 +17,19 @@ const ease = {
   inQuart:     (t) => t * t * t * t,
   inCubic:     (t) => t * t * t,
   inQuad:      (t) => t * t,
+  inSine:      (t) => 1 - Math.cos(t * Math.PI * 0.5),
 
   // Gentle — changes mostly at the high end
   outQuart:    (t) => 1 - Math.pow(1 - t, 4),
   outCubic:    (t) => 1 - Math.pow(1 - t, 3),
   outQuad:     (t) => 1 - (1 - t) * (1 - t),
+  outSine:     (t) => 1 - Math.sin(t * Math.PI * 0.5),
 
   // Balanced
+  inOutQuart:  (t) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2,
   inOutCubic:  (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
   inOutQuad:   (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+  inOutSine:   (t) => t < 0.5 ? 1 - Math.cos(t * Math.PI * 0.5) : Math.sin((t - 0.5) * Math.PI * 0.5) + 1,
 
   // Linear
   linear:      (t) => t,
@@ -38,9 +42,9 @@ const ease = {
 // [worst (score 0), best (score 100), easingFn]
 
 const RANGES = {
-  distort:            [0.75, 0.12,  ease.outCubic],     // Drops fast then levels off
+  distort:            [0.75, 0.12,  ease.inCubic],     // Drops fast then levels off
   frequency:          [0.5, 2.5,    ease.inQuad],        // Rises slowly then jumps at high scores
-  surfaceDistort:     [0.75, 0.12,  ease.outQuart],      // Drops very fast early
+  surfaceDistort:     [0.75, 0.12,  ease.inSine],      // Drops very fast early
   surfaceFrequency:   [0.15, 1.5,   ease.inCubic],       // Stays low then rises late
   speed:              [0.012, 0.002, ease.linear],        // Steady linear change
   surfaceSpeed:       [0.01, 0.001,  ease.outQuad],       // Calms quickly
@@ -55,8 +59,8 @@ const RANGES = {
   clearcoatRoughness: [0.02, 0.02,  ease.linear],          // Constant
   envMapIntensity:    [0.35, 0.5,   ease.inQuad],          // Reflections increase at high scores
   transmission:       [0.95, 0.95,  ease.linear],          // Constant
-  tendrilCount:       [50, 8,       ease.outQuart],        // Drops fast — few tendrils for good sleep
-  tendrilLength:      [0.35, 0.08,  ease.outCubic],        // Shorter quickly
+  tendrilCount:       [50, 8,       ease.inQuad],        // Drops fast — few tendrils for good sleep
+  tendrilLength:      [0.35, 0.08,  ease.inSine],        // Shorter quickly
   tendrilThickness:   [0.01, 0.005, ease.inOutQuad],       // Gentle thinning
 }
 
