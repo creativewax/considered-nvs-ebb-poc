@@ -8,7 +8,7 @@ import * as THREE from 'three'
 // ------------------------------------------------------------ CONFIG
 
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-const CUBES_PER_PATH = IS_MOBILE ? 32 : 96
+const CUBES_PER_PATH = IS_MOBILE ? 64 : 96
 const MAX_PATHS_MOBILE = 25
 
 // ------------------------------------------------------------ TENDRIL SYSTEM

@@ -44,8 +44,8 @@ const TWEENED_MATERIAL_KEYS = [
 
 // ── MOBILE PERFORMANCE SCALING ──
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-const SPHERE_SEGMENTS = IS_MOBILE ? 128 : 256
-const PIXEL_RATIO_CAP = IS_MOBILE ? 1.0 : 1.5
+const SPHERE_SEGMENTS = IS_MOBILE ? 256 : 512
+const PIXEL_RATIO_CAP = IS_MOBILE ? 2.0 : 2.0
 
 export class OrbScene {
   constructor() {
@@ -147,7 +147,7 @@ export class OrbScene {
     // Low environmentIntensity: HDRI provides subtle specular reflections only.
     // Point lights handle ALL diffuse colouring — this is why they were invisible
     // before. The env map was fully illuminating the surface, drowning them out.
-    this._scene.environmentIntensity = 0.95  // Sharp reflections, adds depth to material
+    this._scene.environmentIntensity = 0.25  // Sharp reflections, adds depth to material
   }
 
   // ------------------------------------------------------------
@@ -186,10 +186,15 @@ export class OrbScene {
     material.onBeforeCompile = (shader) => {
       this._shader = shader
 
-      // Add custom uniforms
+      // Add displacement uniforms
       for (const [key, val] of Object.entries(DEFAULT_UNIFORMS)) {
         shader.uniforms[key] = { value: val }
       }
+
+      // Add gradient colour uniforms for fragment shader
+      shader.uniforms.uGradColA = { value: new THREE.Color(0xffffff) }
+      shader.uniforms.uGradColB = { value: new THREE.Color(0xffffff) }
+      shader.uniforms.uGradColC = { value: new THREE.Color(0xffffff) }
 
       // Check what chunks exist in the vertex shader
       const hasBeginVertex = shader.vertexShader.includes('#include <begin_vertex>')
@@ -232,6 +237,45 @@ export class OrbScene {
         `
       )
 
+      // ── FRAGMENT SHADER: inject gradient colour blend ──
+      // Blends 3 colours across the surface based on normal direction.
+      // This bypasses the PBR lighting for colour — lights still affect
+      // brightness/reflections but the base colour is our gradient.
+      shader.fragmentShader = `
+        uniform vec3 uGradColA;
+        uniform vec3 uGradColB;
+        uniform vec3 uGradColC;
+      ` + shader.fragmentShader
+
+      // Replace the diffuse color chunk to inject our gradient
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        /* glsl */ `
+          #include <color_fragment>
+
+          // Blend 3 gradient colours based on view-space normal direction
+          // This creates a smooth colour gradient across the orb surface
+          vec3 viewNorm = normalize(vNormal);
+
+          // Three blend weights based on normal direction
+          float wA = max(0.0, dot(viewNorm, normalize(vec3(0.8, 0.5, 0.3))));   // upper-right
+          float wB = max(0.0, dot(viewNorm, normalize(vec3(-0.6, -0.2, 0.4)))); // left
+          float wC = max(0.0, dot(viewNorm, normalize(vec3(0.1, -0.7, -0.5)))); // below-behind
+
+          // Normalise weights
+          float total = wA + wB + wC + 0.001;
+          wA /= total;
+          wB /= total;
+          wC /= total;
+
+          // Blend the gradient colours
+          vec3 gradCol = uGradColA * wA + uGradColB * wB + uGradColC * wC;
+
+          // Apply: multiply with the existing diffuse (preserves material colour influence)
+          diffuseColor.rgb *= gradCol * 2.0;
+        `
+      )
+
       // Verify our code is actually in the compiled shader
       const hasDisplacement = shader.vertexShader.includes('displacedPosition')
       const hasF = shader.vertexShader.includes('f(position)')
@@ -261,19 +305,19 @@ export class OrbScene {
     this._scene.add(ambient)
 
     // Key — upper right
-    this._keyLight = new THREE.PointLight(0xffeedd, 70.5)
+    this._keyLight = new THREE.PointLight(0xffeedd, 2.5)
     this._keyLight.decay = 0
     this._keyLight.position.set(2, 2.5, 2.5)
     this._scene.add(this._keyLight)
 
     // Fill — left (closer for stronger tint)
-    this._fillLight = new THREE.PointLight(0xddccff, 70.5)
+    this._fillLight = new THREE.PointLight(0xddccff, 2.5)
     this._fillLight.decay = 0
     this._fillLight.position.set(-2.5, -0.5, 2)
     this._scene.add(this._fillLight)
 
     // Rim — behind
-    this._rimLight = new THREE.PointLight(0xffccaa, 70.5)
+    this._rimLight = new THREE.PointLight(0xffccaa, 2.5)
     this._rimLight.decay = 0
     this._rimLight.position.set(0.5, -2, -2.5)
     this._scene.add(this._rimLight)
@@ -389,6 +433,12 @@ export class OrbScene {
     if (config.lightKey && this._keyLight) this._keyLight.color.set(config.lightKey)
     if (config.lightFill && this._fillLight) this._fillLight.color.set(config.lightFill)
     if (config.lightRim && this._rimLight) this._rimLight.color.set(config.lightRim)
+    // Gradient colours injected into fragment shader
+    if (this._shader) {
+      if (config.lightKey) this._shader.uniforms.uGradColA.value.set(config.lightKey)
+      if (config.lightFill) this._shader.uniforms.uGradColB.value.set(config.lightFill)
+      if (config.lightRim) this._shader.uniforms.uGradColC.value.set(config.lightRim)
+    }
     // Material colour — must be set here too, HDRI recompile resets it
     if (config.color && this._mesh?.material) {
       this._mesh.material.color.set(config.color)
@@ -496,18 +546,27 @@ export class OrbScene {
     this._updateTendrils(config)
 
     // Light colours — paint the orb with gradient blending
-    console.log('[OrbScene] Setting light colours:', config.lightKey, config.lightFill, config.lightRim)
+    // Light colours + fragment shader gradient colours
     if (config.lightKey && this._keyLight) {
       const kc = new THREE.Color(config.lightKey)
       gsap.to(this._keyLight.color, { r: kc.r, g: kc.g, b: kc.b, duration: 0.8, ease: 'power2.inOut' })
+      if (this._shader?.uniforms?.uGradColA) {
+        gsap.to(this._shader.uniforms.uGradColA.value, { r: kc.r, g: kc.g, b: kc.b, duration: 0.8, ease: 'power2.inOut' })
+      }
     }
     if (config.lightFill && this._fillLight) {
       const fc = new THREE.Color(config.lightFill)
       gsap.to(this._fillLight.color, { r: fc.r, g: fc.g, b: fc.b, duration: 0.8, ease: 'power2.inOut' })
+      if (this._shader?.uniforms?.uGradColB) {
+        gsap.to(this._shader.uniforms.uGradColB.value, { r: fc.r, g: fc.g, b: fc.b, duration: 0.8, ease: 'power2.inOut' })
+      }
     }
     if (config.lightRim && this._rimLight) {
       const rc = new THREE.Color(config.lightRim)
       gsap.to(this._rimLight.color, { r: rc.r, g: rc.g, b: rc.b, duration: 0.8, ease: 'power2.inOut' })
+      if (this._shader?.uniforms?.uGradColC) {
+        gsap.to(this._shader.uniforms.uGradColC.value, { r: rc.r, g: rc.g, b: rc.b, duration: 0.8, ease: 'power2.inOut' })
+      }
     }
 
     // Scale
