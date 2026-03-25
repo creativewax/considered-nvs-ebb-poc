@@ -126,7 +126,7 @@ export class OrbScene {
     })
     renderer.setClearColor(0xFDFCFB, 1)  // Match page bg
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.8  // Rich and bright through ACES
+    renderer.toneMappingExposure = 2.2  // Bright — vivid colours through ACES
     renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -143,7 +143,7 @@ export class OrbScene {
     // Low environmentIntensity: HDRI provides subtle specular reflections only.
     // Point lights handle ALL diffuse colouring — this is why they were invisible
     // before. The env map was fully illuminating the surface, drowning them out.
-    this._scene.environmentIntensity = 0.15
+    this._scene.environmentIntensity = 0  // Zero — no IBL, point lights only
   }
 
   // ------------------------------------------------------------
