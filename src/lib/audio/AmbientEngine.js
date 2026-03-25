@@ -1,66 +1,36 @@
 // src/lib/audio/AmbientEngine.js
 
 // ------------------------------------------------------------ QUALITY PRESETS
+// Musical intervals — consonant for good sleep, dissonant for poor
 
 const QUALITY_PARAMS = {
-  excellent: {
-    freqs: [65, 98, 196],       // Root + fifth + octave — consonant, warm
-    cutoff: 300,
-    gain: 0.10,
-    detune: 0,
-    driftRange: 3,              // Hz of random frequency drift
-    driftSpeed: 8,              // Seconds between drift changes
-    panRange: 0.2,
-  },
-  good: {
-    freqs: [82, 123, 247],
-    cutoff: 450,
-    gain: 0.12,
-    detune: 0,
-    driftRange: 5,
-    driftSpeed: 6,
-    panRange: 0.3,
-  },
-  fair: {
-    freqs: [110, 165, 277],
-    cutoff: 700,
-    gain: 0.14,
-    detune: 0,
-    driftRange: 8,
-    driftSpeed: 4,
-    panRange: 0.35,
-  },
-  poor: {
-    freqs: [147, 220, 370],      // Higher, more tense intervals
-    cutoff: 1100,
-    gain: 0.16,
-    detune: 6,
-    driftRange: 15,              // More erratic drift
-    driftSpeed: 2,               // Faster changes
-    panRange: 0.5,
-  },
+  excellent:  { freqs: [65, 130, 195], gain: 0.08, filterCut: 300 },
+  very_good:  { freqs: [73, 146, 220], gain: 0.09, filterCut: 400 },
+  good:       { freqs: [82, 164, 247], gain: 0.10, filterCut: 450 },
+  moderate:   { freqs: [98, 196, 294], gain: 0.10, filterCut: 500 },
+  fair:       { freqs: [110, 220, 330], gain: 0.11, filterCut: 600 },
+  restless:   { freqs: [123, 247, 350], gain: 0.12, filterCut: 750 },
+  poor:       { freqs: [147, 294, 415], gain: 0.13, filterCut: 900 },
+  very_poor:  { freqs: [165, 330, 468], gain: 0.14, filterCut: 1100 },
+  disrupted:  { freqs: [185, 370, 525], gain: 0.15, filterCut: 1400 },
 }
 
-const DEFAULT_QUALITY = 'good'
-
 // ------------------------------------------------------------ AMBIENT ENGINE
-// Creates an evolving soundscape by scheduling random parameter
-// changes at intervals — frequency drift, filter sweeps, volume
-// swells, and stereo panning. Each "voice" wanders independently.
+// Simple, clean ambient: 3 sine oscillators through a filter.
+// Slow LFO on filter cutoff creates gentle movement without random hums.
 
 export class AmbientEngine {
   constructor() {
     this._ctx = null
     this._masterGain = null
     this._filter = null
-    this._panner = null
-    this._voices = []       // { osc, gain }
+    this._oscillators = []
+    this._lfo = null
+    this._lfoGain = null
     this._playing = false
-    this._driftTimers = []
-    this._params = QUALITY_PARAMS[DEFAULT_QUALITY]
+    this._startedAt = 0
+    this._quality = 'good'
   }
-
-  // ------------------------------------------------------------ START
 
   start() {
     if (this._playing) return
@@ -70,68 +40,65 @@ export class AmbientEngine {
     if (this._ctx.state === 'suspended') this._ctx.resume()
 
     const ctx = this._ctx
-    const p = this._params
+    const p = QUALITY_PARAMS[this._quality] || QUALITY_PARAMS.good
 
-    // ── OUTPUT CHAIN ──
+    // Output chain: oscillators → filter → master gain → destination
     this._masterGain = ctx.createGain()
     this._masterGain.gain.value = 0
     this._masterGain.connect(ctx.destination)
 
-    this._panner = ctx.createStereoPanner()
-    this._panner.pan.value = 0
-    this._panner.connect(this._masterGain)
-
     this._filter = ctx.createBiquadFilter()
     this._filter.type = 'lowpass'
-    this._filter.frequency.value = p.cutoff
+    this._filter.frequency.value = p.filterCut
     this._filter.Q.value = 1.5
-    this._filter.connect(this._panner)
+    this._filter.connect(this._masterGain)
 
-    // ── VOICES — each a sine oscillator with its own gain ──
-    const voiceGains = [0.3, 0.2, 0.12]
-    const types = ['sine', 'triangle', 'sine']
-
-    this._voices = p.freqs.map((freq, i) => {
+    // Three sine oscillators — root, octave, fifth
+    const gains = [0.4, 0.25, 0.15]
+    this._oscillators = p.freqs.map((freq, i) => {
       const osc = ctx.createOscillator()
-      osc.type = types[i]
+      osc.type = 'sine'
       osc.frequency.value = freq
-      if (i === 1) osc.detune.value = p.detune
 
-      const gain = ctx.createGain()
-      gain.gain.value = voiceGains[i]
+      const g = ctx.createGain()
+      g.gain.value = gains[i]
 
-      osc.connect(gain)
-      gain.connect(this._filter)
+      osc.connect(g)
+      g.connect(this._filter)
       osc.start()
-
-      return { osc, gain }
+      return { osc, gain: g }
     })
 
-    // ── FADE IN ──
-    this._masterGain.gain.setValueAtTime(0, ctx.currentTime)
-    this._masterGain.gain.linearRampToValueAtTime(p.gain, ctx.currentTime + 2.5)
+    // LFO on filter cutoff — slow, smooth movement (not random)
+    this._lfo = ctx.createOscillator()
+    this._lfo.type = 'sine'
+    this._lfo.frequency.value = 0.08  // Very slow — one cycle every 12.5 seconds
 
-    // ── START DRIFTING ──
-    this._startDrifts()
+    this._lfoGain = ctx.createGain()
+    this._lfoGain.gain.value = p.filterCut * 0.3  // Modulate by 30% of cutoff
+    this._lfo.connect(this._lfoGain)
+    this._lfoGain.connect(this._filter.frequency)
+    this._lfo.start()
+
+    // Fade in
+    this._masterGain.gain.setValueAtTime(0, ctx.currentTime)
+    this._masterGain.gain.linearRampToValueAtTime(p.gain, ctx.currentTime + 2.0)
 
     this._playing = true
   }
 
-  // ------------------------------------------------------------ STOP
-
   stop() {
     if (!this._playing || !this._ctx) return
-    if (this._startedAt && Date.now() - this._startedAt < 150) return
-
-    this._stopDrifts()
+    if (Date.now() - this._startedAt < 200) return  // Debounce
 
     const now = this._ctx.currentTime
     this._masterGain.gain.setValueAtTime(this._masterGain.gain.value, now)
     this._masterGain.gain.linearRampToValueAtTime(0, now + 1.0)
 
     setTimeout(() => {
-      this._voices.forEach(v => { try { v.osc.stop() } catch (_) {} })
-      this._voices = []
+      this._oscillators.forEach(({ osc }) => { try { osc.stop() } catch (_) {} })
+      try { this._lfo?.stop() } catch (_) {}
+      this._oscillators = []
       this._playing = false
     }, 1100)
   }
@@ -144,111 +111,32 @@ export class AmbientEngine {
     }, 1200)
   }
 
-  // ------------------------------------------------------------ SET QUALITY
-
   setQuality(quality) {
+    this._quality = quality
     if (!this._playing || !this._ctx) return
 
-    const p = QUALITY_PARAMS[quality] ?? QUALITY_PARAMS[DEFAULT_QUALITY]
-    this._params = p
+    const p = QUALITY_PARAMS[quality] || QUALITY_PARAMS.good
     const now = this._ctx.currentTime
-    const end = now + 2.5
+    const end = now + 2.0
 
-    // Crossfade frequencies
-    this._voices.forEach((v, i) => {
-      if (p.freqs[i]) this._ramp(v.osc.frequency, p.freqs[i], now, end)
-    })
-
-    // Detune voice 1
-    if (this._voices[1]) this._ramp(this._voices[1].osc.detune, p.detune, now, end)
-
-    // Filter + gain
-    this._ramp(this._filter.frequency, p.cutoff, now, end)
-    this._ramp(this._masterGain.gain, p.gain, now, end)
-
-    // Restart drifts with new params
-    this._stopDrifts()
-    this._startDrifts()
-  }
-
-  // ------------------------------------------------------------ DRIFTS
-  // Random parameter changes scheduled at intervals — this is what
-  // makes it sound alive rather than a static hum.
-
-  _startDrifts() {
-    const p = this._params
-
-    // ── FREQUENCY DRIFT — each voice wanders randomly ──
-    this._voices.forEach((v, i) => {
-      const baseFreq = p.freqs[i]
-      const drift = () => {
-        if (!this._playing || !this._ctx) return
-        const target = baseFreq + (Math.random() * 2 - 1) * p.driftRange
-        const now = this._ctx.currentTime
-        // Random duration between 60-100% of driftSpeed
-        const dur = p.driftSpeed * (0.6 + Math.random() * 0.4)
-        v.osc.frequency.setValueAtTime(v.osc.frequency.value, now)
-        v.osc.frequency.linearRampToValueAtTime(target, now + dur)
-
-        this._driftTimers.push(setTimeout(drift, dur * 1000))
+    // Tween oscillator frequencies
+    this._oscillators.forEach(({ osc }, i) => {
+      if (p.freqs[i]) {
+        osc.frequency.setValueAtTime(osc.frequency.value, now)
+        osc.frequency.linearRampToValueAtTime(p.freqs[i], end)
       }
-      // Stagger the start of each voice
-      this._driftTimers.push(setTimeout(drift, i * 1500 + Math.random() * 2000))
     })
 
-    // ── VOLUME SWELL — gentle random amplitude changes on each voice ──
-    this._voices.forEach((v, i) => {
-      const baseGain = v.gain.gain.value
-      const swell = () => {
-        if (!this._playing || !this._ctx) return
-        const target = baseGain * (0.5 + Math.random() * 0.8) // 50-130% of base
-        const now = this._ctx.currentTime
-        const dur = 3 + Math.random() * 5 // 3-8 seconds
-        v.gain.gain.setValueAtTime(v.gain.gain.value, now)
-        v.gain.gain.linearRampToValueAtTime(target, now + dur)
+    // Tween filter cutoff
+    this._filter.frequency.setValueAtTime(this._filter.frequency.value, now)
+    this._filter.frequency.linearRampToValueAtTime(p.filterCut, end)
 
-        this._driftTimers.push(setTimeout(swell, dur * 1000))
-      }
-      this._driftTimers.push(setTimeout(swell, 2000 + i * 1000 + Math.random() * 3000))
-    })
+    // Tween LFO depth
+    this._lfoGain.gain.setValueAtTime(this._lfoGain.gain.value, now)
+    this._lfoGain.gain.linearRampToValueAtTime(p.filterCut * 0.3, end)
 
-    // ── FILTER SWEEP — slow random cutoff changes ──
-    const filterSweep = () => {
-      if (!this._playing || !this._ctx) return
-      const base = p.cutoff
-      const target = base * (0.7 + Math.random() * 0.6) // 70-130% of base
-      const now = this._ctx.currentTime
-      const dur = 4 + Math.random() * 6
-      this._filter.frequency.setValueAtTime(this._filter.frequency.value, now)
-      this._filter.frequency.linearRampToValueAtTime(target, now + dur)
-
-      this._driftTimers.push(setTimeout(filterSweep, dur * 1000))
-    }
-    this._driftTimers.push(setTimeout(filterSweep, 3000))
-
-    // ── STEREO PAN — slow random wandering ──
-    const panDrift = () => {
-      if (!this._playing || !this._ctx || !this._panner) return
-      const target = (Math.random() * 2 - 1) * p.panRange
-      const now = this._ctx.currentTime
-      const dur = 3 + Math.random() * 5
-      this._panner.pan.setValueAtTime(this._panner.pan.value, now)
-      this._panner.pan.linearRampToValueAtTime(target, now + dur)
-
-      this._driftTimers.push(setTimeout(panDrift, dur * 1000))
-    }
-    this._driftTimers.push(setTimeout(panDrift, 1000))
-  }
-
-  _stopDrifts() {
-    this._driftTimers.forEach(t => clearTimeout(t))
-    this._driftTimers = []
-  }
-
-  // ------------------------------------------------------------ HELPERS
-
-  _ramp(param, target, now, end) {
-    param.setValueAtTime(param.value, now)
-    param.linearRampToValueAtTime(target, end)
+    // Tween master volume
+    this._masterGain.gain.setValueAtTime(this._masterGain.gain.value, now)
+    this._masterGain.gain.linearRampToValueAtTime(p.gain, end)
   }
 }

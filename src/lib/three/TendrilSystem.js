@@ -33,8 +33,8 @@ export class TendrilSystem {
     this._totalInstances = totalInstances
 
     // Small cube — sized to overlap with neighbours at CUBES_PER_PATH density
-    const thickness = config.tendrilThickness ?? 0.01
-    const geo = new THREE.BoxGeometry(thickness * 2, thickness * 2, thickness * 2)
+    const thickness = config.tendrilThickness * 4.0 ?? 0.01
+    const geo = new THREE.BoxGeometry(thickness, thickness, thickness)
 
     // Metallic but not mirror-shiny — picks up coloured light
     const mat = new THREE.MeshPhysicalMaterial({

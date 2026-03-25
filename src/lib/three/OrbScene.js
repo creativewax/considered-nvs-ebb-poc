@@ -255,22 +255,22 @@ export class OrbScene {
     const ambient = new THREE.AmbientLight(0xffffff, 0.1)
     this._scene.add(ambient)
 
-    // Key — upper right (subtle tinting, not blasting)
-    this._keyLight = new THREE.PointLight(0xffeedd, 1.5)
+    // Key — upper right
+    this._keyLight = new THREE.PointLight(0xffeedd, 2.5)
     this._keyLight.decay = 0
-    this._keyLight.position.set(2.5, 3, 3)
+    this._keyLight.position.set(2, 2.5, 2.5)
     this._scene.add(this._keyLight)
 
-    // Fill — left
-    this._fillLight = new THREE.PointLight(0xddccff, 1.2)
+    // Fill — left (closer for stronger tint)
+    this._fillLight = new THREE.PointLight(0xddccff, 2.0)
     this._fillLight.decay = 0
-    this._fillLight.position.set(-3, 0, 2.5)
+    this._fillLight.position.set(-2.5, -0.5, 2)
     this._scene.add(this._fillLight)
 
     // Rim — behind
-    this._rimLight = new THREE.PointLight(0xffccaa, 0.8)
+    this._rimLight = new THREE.PointLight(0xffccaa, 1.5)
     this._rimLight.decay = 0
-    this._rimLight.position.set(0, -2.5, -3)
+    this._rimLight.position.set(0.5, -2, -2.5)
     this._scene.add(this._rimLight)
   }
 
@@ -338,6 +338,12 @@ export class OrbScene {
     controls.autoRotate = true
     controls.autoRotateSpeed = 1.5
     this._controls = controls
+    this._isInteracting = false
+    this._chromaticAmount = 0
+
+    // Track interaction for chromatic aberration
+    controls.addEventListener('start', () => { this._isInteracting = true })
+    controls.addEventListener('end', () => { this._isInteracting = false })
   }
 
   // ------------------------------------------------------------
@@ -354,6 +360,20 @@ export class OrbScene {
     // Animate tendrils
     if (this._tendrils && this._lastConfig) {
       this._tendrils.update(0.016, this._lastConfig)
+    }
+
+    // Chromatic aberration — ramp up during interaction, ease down after
+    const targetChromatic = this._isInteracting ? 3 : 0
+    this._chromaticAmount += (targetChromatic - this._chromaticAmount) * 0.08
+    if (this._renderer?.domElement) {
+      const ca = this._chromaticAmount
+      if (ca > 0.1) {
+        // Offset RGB channels slightly via CSS drop-shadow trick
+        this._renderer.domElement.style.filter =
+          `drop-shadow(${ca}px 0 0 rgba(255,0,0,0.15)) drop-shadow(${-ca}px 0 0 rgba(0,0,255,0.15))`
+      } else {
+        this._renderer.domElement.style.filter = ''
+      }
     }
 
     this._controls?.update()
