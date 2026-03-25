@@ -34,7 +34,7 @@ const DEFAULT_UNIFORMS = {
 const TWEENED_UNIFORM_KEYS = [
   'distort', 'frequency', 'surfaceDistort', 'surfaceFrequency',
   'numberOfWaves', 'surfacePoleAmount', 'gooPoleAmount',
-  'twist', 'twistFrequency',
+  'twist', 'twistFrequency', 'gradIntensity',
 ]
 
 const TWEENED_MATERIAL_KEYS = [
@@ -195,6 +195,7 @@ export class OrbScene {
       shader.uniforms.uGradColA = { value: new THREE.Color(0xffffff) }
       shader.uniforms.uGradColB = { value: new THREE.Color(0xffffff) }
       shader.uniforms.uGradColC = { value: new THREE.Color(0xffffff) }
+      shader.uniforms.gradIntensity = { value: 2.0 }
 
       // Check what chunks exist in the vertex shader
       const hasBeginVertex = shader.vertexShader.includes('#include <begin_vertex>')
@@ -245,6 +246,7 @@ export class OrbScene {
         uniform vec3 uGradColA;
         uniform vec3 uGradColB;
         uniform vec3 uGradColC;
+        uniform float gradIntensity;
       ` + shader.fragmentShader
 
       // Replace the diffuse color chunk to inject our gradient
@@ -272,7 +274,7 @@ export class OrbScene {
           vec3 gradCol = uGradColA * wA + uGradColB * wB + uGradColC * wC;
 
           // Apply: multiply with the existing diffuse (preserves material colour influence)
-          diffuseColor.rgb *= gradCol * 2.0;
+          diffuseColor.rgb *= gradCol * gradIntensity;
         `
       )
 
