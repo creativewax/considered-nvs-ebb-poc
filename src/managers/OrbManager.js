@@ -5,41 +5,59 @@ import { EVENTS } from '../constants/events.js'
 import { QUALITY_COLOURS } from '../constants/colours.js'
 import { scoreToQuality } from '../constants/sleep.js'
 
-// ------------------------------------------------------------ EASING
-// Score 0-100 → eased 0-1 (0 = worst, 1 = best)
-
-function easeInOutCubic(t) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-}
+// ------------------------------------------------------------ EASING FUNCTIONS
 
 function lerp(min, max, t) {
   return min + (max - min) * t
 }
 
+// Each property uses a different easing so values don't move in lockstep
+const ease = {
+  // Aggressive — changes mostly at the low end
+  inQuart:     (t) => t * t * t * t,
+  inCubic:     (t) => t * t * t,
+  inQuad:      (t) => t * t,
+
+  // Gentle — changes mostly at the high end
+  outQuart:    (t) => 1 - Math.pow(1 - t, 4),
+  outCubic:    (t) => 1 - Math.pow(1 - t, 3),
+  outQuad:     (t) => 1 - (1 - t) * (1 - t),
+
+  // Balanced
+  inOutCubic:  (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  inOutQuad:   (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+
+  // Linear
+  linear:      (t) => t,
+
+  // Custom — steep at extremes, flat in middle
+  bellCurve:   (t) => Math.sin(t * Math.PI) * 0.5 + t * 0.5,
+}
+
 // ------------------------------------------------------------ PROPERTY RANGES
-// [worst (score 0), best (score 100)]
+// [worst (score 0), best (score 100), easingFn]
 
 const RANGES = {
-  distort:            [0.75, 0.12],
-  frequency:          [0.5, 2.5],
-  surfaceDistort:     [0.75, 0.12],
-  surfaceFrequency:   [0.15, 1.5],
-  speed:              [0.012, 0.002],
-  surfaceSpeed:       [0.01, 0.001],
-  numberOfWaves:      [7.0, 2.0],
-  surfacePoleAmount:  [0.2, 1.0],
-  gooPoleAmount:      [0.2, 1.0],
-  twist:              [0.8, 0.0],
-  twistFrequency:     [0.35, 1.0],
-  roughness:          [0.25, 0.05],
-  metalness:          [0.6, 0.4],
-  clearcoat:          [0.95, 0.95],
-  clearcoatRoughness: [0.02, 0.02],
-  envMapIntensity:    [0.35, 0.5],
-  transmission:       [0.95, 0.95],
-  tendrilCount:       [50, 8],
-  tendrilLength:      [0.35, 0.08],
-  tendrilThickness:   [0.01, 0.005],
+  distort:            [0.75, 0.12,  ease.outCubic],     // Drops fast then levels off
+  frequency:          [0.5, 2.5,    ease.inQuad],        // Rises slowly then jumps at high scores
+  surfaceDistort:     [0.75, 0.12,  ease.outQuart],      // Drops very fast early
+  surfaceFrequency:   [0.15, 1.5,   ease.inCubic],       // Stays low then rises late
+  speed:              [0.012, 0.002, ease.linear],        // Steady linear change
+  surfaceSpeed:       [0.01, 0.001,  ease.outQuad],       // Calms quickly
+  numberOfWaves:      [7.0, 2.0,    ease.inOutCubic],     // Balanced S-curve
+  surfacePoleAmount:  [0.2, 1.0,    ease.inQuart],        // Stays restricted then opens late
+  gooPoleAmount:      [0.2, 1.0,    ease.inCubic],        // Similar but offset from above
+  twist:              [0.8, 0.0,    ease.outCubic],        // Drops fast — twist is dramatic at low end
+  twistFrequency:     [0.35, 1.0,   ease.bellCurve],      // Peaks in middle range
+  roughness:          [0.25, 0.05,  ease.inOutQuad],       // Gentle S-curve
+  metalness:          [0.6, 0.4,    ease.linear],          // Subtle linear shift
+  clearcoat:          [0.95, 0.95,  ease.linear],          // Constant
+  clearcoatRoughness: [0.02, 0.02,  ease.linear],          // Constant
+  envMapIntensity:    [0.35, 0.5,   ease.inQuad],          // Reflections increase at high scores
+  transmission:       [0.95, 0.95,  ease.linear],          // Constant
+  tendrilCount:       [50, 8,       ease.outQuart],        // Drops fast — few tendrils for good sleep
+  tendrilLength:      [0.35, 0.08,  ease.outCubic],        // Shorter quickly
+  tendrilThickness:   [0.01, 0.005, ease.inOutQuad],       // Gentle thinning
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
@@ -111,14 +129,13 @@ class OrbManager extends BaseManager {
   _calculateConfig(record) {
     const { score, quality } = record
 
-    // Ease the score: cubic easing makes mid-range changes more gradual
-    // and extremes more dramatic
+    // Normalise score to 0-1
     const normalised = Math.max(0, Math.min(100, score)) / 100
-    const eased = easeInOutCubic(normalised)
 
-    // Interpolate all numeric properties between worst and best
+    // Each property uses its own easing function
     const config = {}
-    for (const [key, [worst, best]] of Object.entries(RANGES)) {
+    for (const [key, [worst, best, easeFn]] of Object.entries(RANGES)) {
+      const eased = easeFn(normalised)
       config[key] = lerp(worst, best, eased)
     }
 
