@@ -377,6 +377,17 @@ export class OrbScene {
     if (config.lightKey && this._keyLight) this._keyLight.color.set(config.lightKey)
     if (config.lightFill && this._fillLight) this._fillLight.color.set(config.lightFill)
     if (config.lightRim && this._rimLight) this._rimLight.color.set(config.lightRim)
+    // Material colour — must be set here too, HDRI recompile resets it
+    if (config.color && this._mesh?.material) {
+      this._mesh.material.color.set(config.color)
+    }
+    // Material properties
+    const mat = this._mesh?.material
+    if (mat) {
+      for (const key of TWEENED_MATERIAL_KEYS) {
+        if (config[key] != null) mat[key] = config[key]
+      }
+    }
   }
 
   _updateTendrils(config) {
@@ -455,7 +466,8 @@ export class OrbScene {
       this._activeTweens.push(tween)
     }
 
-    // Colour — tween to the preset's orb colour (not the UI quality colour)
+    // Colour — tween to the preset's orb colour
+    console.log('[OrbScene] Colour tween:', config.color, '→', this._mesh?.material?.color?.getHexString())
     if (config.color) {
       const targetCol = new THREE.Color(config.color)
       const tween = gsap.to(mat.color, {

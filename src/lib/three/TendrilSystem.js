@@ -27,7 +27,7 @@ export class TendrilSystem {
   build(config) {
     this.dispose()
 
-    const pathCount = config.tendrilCount ?? 60
+    const pathCount = config.tendrilCount * 2.0 ?? 60
     const totalInstances = pathCount * CUBES_PER_PATH
     this._pathCount = pathCount
     this._totalInstances = totalInstances
