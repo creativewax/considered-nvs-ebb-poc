@@ -259,19 +259,19 @@ export class OrbScene {
     this._scene.add(ambient)
 
     // Key — upper right
-    this._keyLight = new THREE.PointLight(0xffeedd, 3)
+    this._keyLight = new THREE.PointLight(0xff0000, 5)
     this._keyLight.decay = 0
     this._keyLight.position.set(2.5, 3, 3)
     this._scene.add(this._keyLight)
 
     // Fill — left
-    this._fillLight = new THREE.PointLight(0xddccff, 3)
+    this._fillLight = new THREE.PointLight(0x0000ff, 5)
     this._fillLight.decay = 0
     this._fillLight.position.set(-3, 0, 2.5)
     this._scene.add(this._fillLight)
 
     // Rim — behind
-    this._rimLight = new THREE.PointLight(0xffccaa, 2)
+    this._rimLight = new THREE.PointLight(0x00ff00, 5)
     this._rimLight.decay = 0
     this._rimLight.position.set(0, -2.5, -3)
     this._scene.add(this._rimLight)
