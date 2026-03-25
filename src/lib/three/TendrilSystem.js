@@ -22,6 +22,8 @@ export class TendrilSystem {
     this._dummy = new THREE.Object3D()
     this._time = 0
     this._paths = []
+    this._pulseAmount = 0.01
+    this._pulseRate = 0.15
   }
 
   // ------------------------------------------------------------ BUILD
@@ -46,7 +48,7 @@ export class TendrilSystem {
       metalness: 0.95,
       clearcoat: 0.8,
       clearcoatRoughness: 0.15,
-      envMapIntensity: 2.0,
+      envMapIntensity: 3.0,
     })
 
     if (this._scene.environment) {
@@ -83,6 +85,8 @@ export class TendrilSystem {
   update(deltaTime, config) {
     if (!this._mesh || !this._paths.length) return
     this._time += deltaTime
+    this._pulseAmount = config.tendrilPulseAmount ?? 0.01
+    this._pulseRate = config.tendrilPulseRate ?? 0.15
     this._updateAllInstances(this._time)
   }
 
@@ -109,10 +113,22 @@ export class TendrilSystem {
           + Math.cos(t * path.curvature * 1.5 + noisePhase * 0.6) * 0.1
 
         // Height: cubes sit just above the sphere surface
-        // Gentle breathing + slight rise in the middle of the path
-        const midBulge = Math.sin(t * Math.PI) * 0.03  // Higher in middle
+        const midBulge = Math.sin(t * Math.PI) * 0.03
         const breathe = Math.sin(noisePhase * 2 + t * 5) * path.heightBase * 0.5
-        const r = sphereRadius + path.heightBase + midBulge + breathe
+
+        // Resting radius — the cube's natural position without any pulse
+        const baseR = sphereRadius + path.heightBase + midBulge + breathe
+
+        // Per-cube pulse — outward-only offset from resting position
+        // Each cube gets its own rate, amplitude, and phase so they ripple independently
+        const cubeSeed = path.noiseOffset + (c * 0.06)
+        const cubeRate = this._pulseRate * (0.1 + 0.25 * ((Math.sin(cubeSeed * 3.17) + 1) * 0.5))
+        const cubeAmp = this._pulseAmount * (0.1 + 0.5 * ((Math.sin(cubeSeed * 5.43) + 1) * 0.5))
+        const cubePhase = cubeSeed * 2.71
+        // Remap sin [-1,1] to [0,1] — pulse only pushes outward from resting position
+        const pulse = ((Math.sin(time * cubeRate * Math.PI * 2 + cubePhase) + 1) * 0.5) * cubeAmp
+
+        const r = baseR + pulse
 
         // Spherical → cartesian
         const x = r * Math.sin(phi) * Math.cos(theta)
