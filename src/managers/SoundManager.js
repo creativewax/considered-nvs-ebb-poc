@@ -27,19 +27,20 @@ class SoundManager extends BaseManager {
   // METHODS
   // ------------------------------------------------------------
 
-  play() {
+  async play() {
     if (this._state.playing) return
 
     if (!this._engine) {
       this._engine = new AmbientEngine()
     }
 
-    this._engine.start()
-
-    // Apply any pending quality immediately after engine starts
+    // Set quality before start so the engine initialises with the right preset
     if (this._state.quality) {
-      this._engine.setQuality(this._state.quality)
+      this._engine._quality = this._state.quality
     }
+
+    // start() is async — awaits Tone.start() for Chrome autoplay policy
+    await this._engine.start()
 
     this._setState({ playing: true })
   }

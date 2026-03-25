@@ -1,162 +1,388 @@
 // src/lib/audio/AmbientEngine.js
 
-// ------------------------------------------------------------ QUALITY PRESETS
+import * as Tone from 'tone'
 
-const QUALITY_PARAMS = {
-  excellent:  { bandLow: 100, bandHigh: 400,  noiseGain: 0.04, toneGain: 0.02, tonePitch: 65,  lfoRate: 0.04, filterQ: 8,  panRate: 0.02 },
-  very_good:  { bandLow: 120, bandHigh: 500,  noiseGain: 0.05, toneGain: 0.02, tonePitch: 73,  lfoRate: 0.05, filterQ: 7,  panRate: 0.03 },
-  good:       { bandLow: 140, bandHigh: 600,  noiseGain: 0.05, toneGain: 0.02, tonePitch: 82,  lfoRate: 0.06, filterQ: 6,  panRate: 0.03 },
-  moderate:   { bandLow: 160, bandHigh: 700,  noiseGain: 0.06, toneGain: 0.02, tonePitch: 98,  lfoRate: 0.07, filterQ: 5,  panRate: 0.04 },
-  fair:       { bandLow: 200, bandHigh: 900,  noiseGain: 0.06, toneGain: 0.03, tonePitch: 110, lfoRate: 0.08, filterQ: 5,  panRate: 0.04 },
-  restless:   { bandLow: 250, bandHigh: 1100, noiseGain: 0.07, toneGain: 0.03, tonePitch: 123, lfoRate: 0.1,  filterQ: 4,  panRate: 0.05 },
-  poor:       { bandLow: 300, bandHigh: 1400, noiseGain: 0.08, toneGain: 0.03, tonePitch: 147, lfoRate: 0.12, filterQ: 3,  panRate: 0.06 },
-  very_poor:  { bandLow: 400, bandHigh: 1800, noiseGain: 0.09, toneGain: 0.04, tonePitch: 165, lfoRate: 0.15, filterQ: 3,  panRate: 0.07 },
-  disrupted:  { bandLow: 500, bandHigh: 2200, noiseGain: 0.10, toneGain: 0.04, tonePitch: 185, lfoRate: 0.2,  filterQ: 2,  panRate: 0.08 },
+// ------------------------------------------------------------ QUALITY PRESETS
+// Four layers: pad synth, shimmer, filtered noise, sub-bass pulse.
+// Excellent = warm, open, spacious. Poor/disrupted = darker, dissonant, agitated.
+
+const PRESETS = {
+  excellent: {
+    // Pad — warm major chord, minimal detune
+    padNotes:    ['C3', 'E3', 'G3', 'B3'],
+    padDetune:   6,
+    padVolume:   -18,
+    padAttack:   4,
+    padRelease:  8,
+    // Shimmer — gentle high sparkle
+    shimmerNote: 'C5',
+    shimmerVol:  -28,
+    shimmerMod:  0.5,
+    // Noise bed — very quiet, low cutoff
+    noiseVol:    -32,
+    noiseCutoff: 400,
+    // Sub-bass pulse — silent for good scores
+    subVol:      -Infinity,
+    subPitch:    'C1',
+    subRate:     0,
+    // Effects — big reverb, lush chorus
+    reverbDecay:   6,
+    reverbWet:     0.7,
+    chorusDepth:   0.6,
+    chorusFreq:    0.3,
+    delayFeedback: 0.3,
+    delayWet:      0.2,
+    distortion:    0,
+    // Modulation — slow and dreamy
+    lfoRate:       0.04,
+    panRate:       0.02,
+  },
+  very_good: {
+    padNotes:    ['C3', 'E3', 'G3', 'B3'],
+    padDetune:   5,
+    padVolume:   -18,
+    padAttack:   3.5,
+    padRelease:  7,
+    shimmerNote: 'C5',
+    shimmerVol:  -29,
+    shimmerMod:  0.6,
+    noiseVol:    -31,
+    noiseCutoff: 450,
+    subVol:      -Infinity,
+    subPitch:    'C1',
+    subRate:     0,
+    reverbDecay:   5.5,
+    reverbWet:     0.65,
+    chorusDepth:   0.55,
+    chorusFreq:    0.35,
+    delayFeedback: 0.28,
+    delayWet:      0.18,
+    distortion:    0,
+    lfoRate:       0.045,
+    panRate:       0.025,
+  },
+  good: {
+    padNotes:    ['C3', 'E3', 'G3'],
+    padDetune:   4,
+    padVolume:   -19,
+    padAttack:   3,
+    padRelease:  6,
+    shimmerNote: 'G4',
+    shimmerVol:  -30,
+    shimmerMod:  0.8,
+    noiseVol:    -30,
+    noiseCutoff: 500,
+    subVol:      -Infinity,
+    subPitch:    'C1',
+    subRate:     0,
+    reverbDecay:   5,
+    reverbWet:     0.6,
+    chorusDepth:   0.5,
+    chorusFreq:    0.4,
+    delayFeedback: 0.25,
+    delayWet:      0.15,
+    distortion:    0,
+    lfoRate:       0.05,
+    panRate:       0.03,
+  },
+  moderate: {
+    padNotes:    ['C3', 'Eb3', 'G3'],
+    padDetune:   8,
+    padVolume:   -19,
+    padAttack:   2.5,
+    padRelease:  5,
+    shimmerNote: 'Eb4',
+    shimmerVol:  -30,
+    shimmerMod:  1.2,
+    noiseVol:    -28,
+    noiseCutoff: 600,
+    subVol:      -Infinity,
+    subPitch:    'C1',
+    subRate:     0,
+    reverbDecay:   4,
+    reverbWet:     0.5,
+    chorusDepth:   0.4,
+    chorusFreq:    0.5,
+    delayFeedback: 0.2,
+    delayWet:      0.12,
+    distortion:    0,
+    lfoRate:       0.06,
+    panRate:       0.04,
+  },
+  fair: {
+    padNotes:    ['C3', 'Eb3', 'Gb3'],
+    padDetune:   14,
+    padVolume:   -20,
+    padAttack:   2,
+    padRelease:  4.5,
+    shimmerNote: 'Gb4',
+    shimmerVol:  -30,
+    shimmerMod:  1.8,
+    noiseVol:    -27,
+    noiseCutoff: 750,
+    subVol:      -36,
+    subPitch:    'C1',
+    subRate:     0.15,
+    reverbDecay:   3.5,
+    reverbWet:     0.45,
+    chorusDepth:   0.35,
+    chorusFreq:    0.6,
+    delayFeedback: 0.18,
+    delayWet:      0.1,
+    distortion:    0.02,
+    lfoRate:       0.07,
+    panRate:       0.045,
+  },
+  restless: {
+    // Tritone cluster — C + Gb is the devil's interval
+    padNotes:    ['C3', 'Eb3', 'Gb3', 'A3'],
+    padDetune:   22,
+    padVolume:   -19,
+    padAttack:   1.5,
+    padRelease:  3.5,
+    shimmerNote: 'A4',
+    shimmerVol:  -28,
+    shimmerMod:  2.5,
+    noiseVol:    -25,
+    noiseCutoff: 950,
+    subVol:      -30,
+    subPitch:    'C1',
+    subRate:     0.25,
+    reverbDecay:   2.5,
+    reverbWet:     0.35,
+    chorusDepth:   0.25,
+    chorusFreq:    0.8,
+    delayFeedback: 0.15,
+    delayWet:      0.08,
+    distortion:    0.05,
+    lfoRate:       0.1,
+    panRate:       0.055,
+  },
+  poor: {
+    // Heavy tritone + minor 2nd cluster
+    padNotes:    ['C3', 'Db3', 'Gb3'],
+    padDetune:   35,
+    padVolume:   -18,
+    padAttack:   1.2,
+    padRelease:  3,
+    shimmerNote: 'Db5',
+    shimmerVol:  -26,
+    shimmerMod:  3.5,
+    noiseVol:    -23,
+    noiseCutoff: 1200,
+    subVol:      -26,
+    subPitch:    'C1',
+    subRate:     0.35,
+    reverbDecay:   2,
+    reverbWet:     0.3,
+    chorusDepth:   0.2,
+    chorusFreq:    1.0,
+    delayFeedback: 0.12,
+    delayWet:      0.06,
+    distortion:    0.1,
+    lfoRate:       0.14,
+    panRate:       0.065,
+  },
+  very_poor: {
+    // Stacked dissonance — minor 2nds and tritones
+    padNotes:    ['C3', 'Db3', 'E3', 'Gb3'],
+    padDetune:   45,
+    padVolume:   -18,
+    padAttack:   1,
+    padRelease:  2.5,
+    shimmerNote: 'E5',
+    shimmerVol:  -25,
+    shimmerMod:  5.0,
+    noiseVol:    -22,
+    noiseCutoff: 1500,
+    subVol:      -24,
+    subPitch:    'Db1',
+    subRate:     0.45,
+    reverbDecay:   1.5,
+    reverbWet:     0.25,
+    chorusDepth:   0.15,
+    chorusFreq:    1.2,
+    delayFeedback: 0.1,
+    delayWet:      0.05,
+    distortion:    0.15,
+    lfoRate:       0.18,
+    panRate:       0.075,
+  },
+  disrupted: {
+    // Maximum tension — chromatic cluster, heavy sub throb
+    padNotes:    ['C3', 'Db3', 'D3', 'Gb3'],
+    padDetune:   60,
+    padVolume:   -17,
+    padAttack:   0.8,
+    padRelease:  2,
+    shimmerNote: 'G5',
+    shimmerVol:  -24,
+    shimmerMod:  7.0,
+    noiseVol:    -20,
+    noiseCutoff: 1800,
+    subVol:      -22,
+    subPitch:    'Db1',
+    subRate:     0.6,
+    reverbDecay:   1,
+    reverbWet:     0.2,
+    chorusDepth:   0.1,
+    chorusFreq:    1.5,
+    delayFeedback: 0.08,
+    delayWet:      0.04,
+    distortion:    0.2,
+    lfoRate:       0.22,
+    panRate:       0.09,
+  },
 }
 
+// ------------------------------------------------------------ CROSSFADE TIME
+const MORPH_TIME = 3
+
 // ------------------------------------------------------------ AMBIENT ENGINE
-// Filtered noise soundscape — NOT oscillator hums.
-// Two filtered noise bands + one quiet sub-tone + LFO sweeps + stereo pan.
+// Four-layer generative soundscape driven by Tone.js.
+// Layer 1: PolySynth pad (chords, warmth/dissonance)
+// Layer 2: FMSynth shimmer (texture, metallic edge at low scores)
+// Layer 3: Filtered noise bed (air, hiss, presence)
+// Layer 4: Sub-bass pulse (ominous throb for poor scores)
+// All routed through distortion, chorus, delay, reverb, auto-panner.
 
 export class AmbientEngine {
   constructor() {
-    this._ctx = null
-    this._masterGain = null
-    this._playing = false
+    this._playing  = false
+    this._quality  = 'good'
     this._startedAt = 0
-    this._quality = 'good'
-    this._nodes = {}
+    this._nodes    = null
   }
 
   // ------------------------------------------------------------ START
 
-  start() {
+  async start() {
     if (this._playing) return
     this._startedAt = Date.now()
 
-    this._ctx = new (window.AudioContext || window.webkitAudioContext)()
-    if (this._ctx.state === 'suspended') this._ctx.resume()
+    // Tone.start() handles Chrome autoplay — must be called from user gesture
+    await Tone.start()
 
-    const ctx = this._ctx
-    const p = QUALITY_PARAMS[this._quality] || QUALITY_PARAMS.good
+    const p = PRESETS[this._quality] || PRESETS.good
 
-    // ── MASTER OUTPUT ──
-    this._masterGain = ctx.createGain()
-    this._masterGain.gain.value = 0
-    this._masterGain.connect(ctx.destination)
+    // ── EFFECTS CHAIN ──
+    const reverb = new Tone.Reverb({ decay: p.reverbDecay, wet: p.reverbWet })
+    await reverb.generate()
 
-    const panner = ctx.createStereoPanner()
-    panner.pan.value = 0
-    panner.connect(this._masterGain)
+    const distort = new Tone.Distortion({ distortion: p.distortion, wet: p.distortion > 0 ? 0.3 : 0 })
 
-    // ── NOISE SOURCE — white noise buffer ──
-    const bufferSize = ctx.sampleRate * 4  // 4 seconds, looped
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
-    const data = noiseBuffer.getChannelData(0)
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1
+    const chorus = new Tone.Chorus({
+      frequency: p.chorusFreq,
+      delayTime: 3.5,
+      depth: p.chorusDepth,
+      wet: 0.5,
+    }).start()
+
+    const delay = new Tone.FeedbackDelay({
+      delayTime: '4n',
+      feedback: p.delayFeedback,
+      wet: p.delayWet,
+    })
+
+    const panner = new Tone.AutoPanner({ frequency: p.panRate, depth: 0.4 }).start()
+    const master = new Tone.Gain(0).toDestination()
+
+    // Chain: sources → distort → chorus → delay → reverb → panner → master
+    distort.connect(chorus)
+    chorus.connect(delay)
+    delay.connect(reverb)
+    reverb.connect(panner)
+    panner.connect(master)
+
+    // ── PAD SYNTH — sustained chords ──
+    const pad = new Tone.PolySynth(Tone.Synth, {
+      maxPolyphony: 6,
+      voice: Tone.Synth,
+      options: {
+        oscillator: { type: 'sine4', spread: p.padDetune },
+        envelope: {
+          attack:  p.padAttack,
+          decay:   2,
+          sustain: 0.8,
+          release: p.padRelease,
+        },
+        volume: p.padVolume,
+      },
+    })
+
+    // ── PAD FILTER — LFO sweeps for organic movement ──
+    const padFilter = new Tone.Filter({ frequency: 600, type: 'lowpass', rolloff: -12 })
+    const filterLfo = new Tone.LFO(p.lfoRate, 200, 800).start()
+    filterLfo.connect(padFilter.frequency)
+    pad.connect(padFilter)
+    padFilter.connect(distort)
+
+    // ── SHIMMER — FM texture ──
+    const shimmer = new Tone.FMSynth({
+      harmonicity: 3,
+      modulationIndex: p.shimmerMod,
+      oscillator: { type: 'sine' },
+      modulation: { type: 'triangle' },
+      envelope: {
+        attack:  3,
+        decay:   1,
+        sustain: 0.6,
+        release: 5,
+      },
+      volume: p.shimmerVol,
+    }).connect(distort)
+
+    // ── NOISE BED — filtered air ──
+    const noise = new Tone.Noise('pink').start()
+    const noiseFilter = new Tone.AutoFilter({
+      frequency: p.lfoRate,
+      baseFrequency: p.noiseCutoff,
+      octaves: 1.5,
+      depth: 0.6,
+    }).start()
+    const noiseGain = new Tone.Gain(Tone.dbToGain(p.noiseVol))
+    noise.connect(noiseFilter)
+    noiseFilter.connect(noiseGain)
+    noiseGain.connect(distort)
+
+    // ── SUB-BASS PULSE — ominous throb for low scores ──
+    const sub = new Tone.Synth({
+      oscillator: { type: 'sine' },
+      envelope: {
+        attack:  0.4,
+        decay:   0.6,
+        sustain: 0.3,
+        release: 1.5,
+      },
+      volume: p.subVol,
+    }).connect(master) // Sub bypasses effects — straight to master for clean low end
+
+    // Sub-bass LFO triggers periodic pulses via amplitude tremolo
+    const subLfo = new Tone.LFO(p.subRate, 0, 1).start()
+    const subTremolo = new Tone.Gain(0)
+    subLfo.connect(subTremolo.gain)
+
+    // Only route sub through tremolo if sub is active
+    if (p.subVol > -60) {
+      sub.connect(subTremolo)
+      subTremolo.connect(master)
+      sub.triggerAttack(p.subPitch, Tone.now(), 0.6)
     }
 
-    // ── NOISE BAND 1 — low bandpass (warm wash) ──
-    const noise1 = ctx.createBufferSource()
-    noise1.buffer = noiseBuffer
-    noise1.loop = true
+    // Store references
+    this._nodes = {
+      pad, shimmer, noise, noiseFilter, noiseGain,
+      sub, subLfo, subTremolo,
+      distort, chorus, delay, reverb, panner, master,
+      filterLfo, padFilter,
+    }
 
-    const filter1 = ctx.createBiquadFilter()
-    filter1.type = 'bandpass'
-    filter1.frequency.value = p.bandLow
-    filter1.Q.value = p.filterQ
-
-    const gain1 = ctx.createGain()
-    gain1.gain.value = p.noiseGain
-
-    noise1.connect(filter1)
-    filter1.connect(gain1)
-    gain1.connect(panner)
-    noise1.start()
-
-    // ── NOISE BAND 2 — higher bandpass (shimmer/texture) ──
-    const noise2 = ctx.createBufferSource()
-    noise2.buffer = noiseBuffer
-    noise2.loop = true
-
-    const filter2 = ctx.createBiquadFilter()
-    filter2.type = 'bandpass'
-    filter2.frequency.value = p.bandHigh
-    filter2.Q.value = p.filterQ * 0.7
-
-    const gain2 = ctx.createGain()
-    gain2.gain.value = p.noiseGain * 0.4  // Quieter than the low band
-
-    noise2.connect(filter2)
-    filter2.connect(gain2)
-    gain2.connect(panner)
-    noise2.start()
-
-    // ── SUB TONE — very quiet sine underneath for body ──
-    const tone = ctx.createOscillator()
-    tone.type = 'sine'
-    tone.frequency.value = p.tonePitch
-
-    const toneGain = ctx.createGain()
-    toneGain.gain.value = p.toneGain
-
-    const toneFilter = ctx.createBiquadFilter()
-    toneFilter.type = 'lowpass'
-    toneFilter.frequency.value = p.tonePitch * 2
-
-    tone.connect(toneFilter)
-    toneFilter.connect(toneGain)
-    toneGain.connect(panner)
-    tone.start()
-
-    // ── LFO 1 — sweeps filter1 frequency (slow organic movement) ──
-    const lfo1 = ctx.createOscillator()
-    lfo1.type = 'sine'
-    lfo1.frequency.value = p.lfoRate
-
-    const lfo1Gain = ctx.createGain()
-    lfo1Gain.gain.value = p.bandLow * 0.5  // Sweep range
-    lfo1.connect(lfo1Gain)
-    lfo1Gain.connect(filter1.frequency)
-    lfo1.start()
-
-    // ── LFO 2 — sweeps filter2 frequency (different rate for variation) ──
-    const lfo2 = ctx.createOscillator()
-    lfo2.type = 'triangle'
-    lfo2.frequency.value = p.lfoRate * 0.7  // Offset rate
-
-    const lfo2Gain = ctx.createGain()
-    lfo2Gain.gain.value = p.bandHigh * 0.3
-    lfo2.connect(lfo2Gain)
-    lfo2Gain.connect(filter2.frequency)
-    lfo2.start()
-
-    // ── LFO 3 — slow stereo pan drift ──
-    const lfoPan = ctx.createOscillator()
-    lfoPan.type = 'sine'
-    lfoPan.frequency.value = p.panRate
-
-    const lfoPanGain = ctx.createGain()
-    lfoPanGain.gain.value = 0.4  // Pan range ±0.4
-    lfoPan.connect(lfoPanGain)
-    lfoPanGain.connect(panner.pan)
-    lfoPan.start()
+    // ── TRIGGER INITIAL NOTES ──
+    pad.triggerAttack(p.padNotes, Tone.now(), 0.5)
+    shimmer.triggerAttack(p.shimmerNote, Tone.now(), 0.3)
 
     // ── FADE IN ──
-    const totalGain = p.noiseGain + p.toneGain
-    this._masterGain.gain.setValueAtTime(0, ctx.currentTime)
-    this._masterGain.gain.linearRampToValueAtTime(totalGain, ctx.currentTime + 2.5)
-
-    // Store references for cleanup and quality changes
-    this._nodes = {
-      noise1, noise2, tone,
-      filter1, filter2, toneFilter,
-      gain1, gain2, toneGain,
-      lfo1, lfo2, lfoPan,
-      lfo1Gain, lfo2Gain, lfoPanGain,
-      panner,
-    }
+    master.gain.rampTo(1, MORPH_TIME)
 
     this._playing = true
   }
@@ -164,78 +390,89 @@ export class AmbientEngine {
   // ------------------------------------------------------------ STOP
 
   stop() {
-    if (!this._playing || !this._ctx) return
+    if (!this._playing || !this._nodes) return
     if (Date.now() - this._startedAt < 200) return
 
-    const now = this._ctx.currentTime
-    this._masterGain.gain.setValueAtTime(this._masterGain.gain.value, now)
-    this._masterGain.gain.linearRampToValueAtTime(0, now + 1.5)
+    const { pad, shimmer, noise, sub, master } = this._nodes
+
+    // Fade out
+    master.gain.rampTo(0, 2)
+
+    // Capture nodes locally — this._nodes may be nulled by a second stop() call
+    const nodes = this._nodes
+    this._nodes = null
+    this._playing = false
 
     setTimeout(() => {
-      const n = this._nodes
-      try { n.noise1?.stop() } catch (_) {}
-      try { n.noise2?.stop() } catch (_) {}
-      try { n.tone?.stop() } catch (_) {}
-      try { n.lfo1?.stop() } catch (_) {}
-      try { n.lfo2?.stop() } catch (_) {}
-      try { n.lfoPan?.stop() } catch (_) {}
-      this._nodes = {}
-      this._playing = false
-    }, 1600)
+      try { pad.releaseAll() } catch (_) {}
+      try { shimmer.triggerRelease() } catch (_) {}
+      try { noise.stop() } catch (_) {}
+      try { sub.triggerRelease() } catch (_) {}
+
+      Object.values(nodes).forEach(node => {
+        try { node.dispose() } catch (_) {}
+      })
+    }, 2500)
   }
+
+  // ------------------------------------------------------------ DISPOSE
 
   dispose() {
     this.stop()
-    setTimeout(() => {
-      try { this._ctx?.close() } catch (_) {}
-      this._ctx = null
-    }, 1800)
   }
 
   // ------------------------------------------------------------ SET QUALITY
 
   setQuality(quality) {
     this._quality = quality
-    if (!this._playing || !this._ctx) return
+    if (!this._playing || !this._nodes) return
 
-    const p = QUALITY_PARAMS[quality] || QUALITY_PARAMS.good
-    const n = this._nodes
-    const now = this._ctx.currentTime
-    const end = now + 2.0
+    const p = PRESETS[quality] || PRESETS.good
+    const {
+      pad, shimmer, sub, subLfo,
+      noiseFilter, noiseGain,
+      distort, chorus, delay, reverb, panner,
+      filterLfo, padFilter,
+    } = this._nodes
+    const t = Tone.now()
 
-    // Crossfade filter frequencies
-    if (n.filter1) this._ramp(n.filter1.frequency, p.bandLow, now, end)
-    if (n.filter2) this._ramp(n.filter2.frequency, p.bandHigh, now, end)
-    if (n.filter1) this._ramp(n.filter1.Q, p.filterQ, now, end)
-    if (n.filter2) this._ramp(n.filter2.Q, p.filterQ * 0.7, now, end)
+    // ── MORPH PAD ──
+    pad.releaseAll(t)
+    pad.set({
+      oscillator: { spread: p.padDetune },
+      envelope: { attack: p.padAttack, release: p.padRelease },
+      volume: p.padVolume,
+    })
+    pad.triggerAttack(p.padNotes, t + 0.5, 0.5)
 
-    // Crossfade gains
-    if (n.gain1) this._ramp(n.gain1.gain, p.noiseGain, now, end)
-    if (n.gain2) this._ramp(n.gain2.gain, p.noiseGain * 0.4, now, end)
-    if (n.toneGain) this._ramp(n.toneGain.gain, p.toneGain, now, end)
+    // ── MORPH SHIMMER ──
+    shimmer.triggerRelease(t)
+    shimmer.set({ modulationIndex: p.shimmerMod, volume: p.shimmerVol })
+    shimmer.triggerAttack(p.shimmerNote, t + 0.5, 0.3)
 
-    // Crossfade tone pitch
-    if (n.tone) this._ramp(n.tone.frequency, p.tonePitch, now, end)
-    if (n.toneFilter) this._ramp(n.toneFilter.frequency, p.tonePitch * 2, now, end)
+    // ── MORPH NOISE ──
+    noiseFilter.set({ baseFrequency: p.noiseCutoff, frequency: p.lfoRate })
+    noiseGain.gain.linearRampTo(Tone.dbToGain(p.noiseVol), MORPH_TIME)
 
-    // Update LFO rates
-    if (n.lfo1) this._ramp(n.lfo1.frequency, p.lfoRate, now, end)
-    if (n.lfo2) this._ramp(n.lfo2.frequency, p.lfoRate * 0.7, now, end)
-    if (n.lfoPan) this._ramp(n.lfoPan.frequency, p.panRate, now, end)
+    // ── MORPH SUB-BASS ──
+    sub.set({ volume: p.subVol })
+    subLfo.set({ frequency: Math.max(p.subRate, 0.01) })
+    if (p.subVol > -60) {
+      try { sub.triggerRelease(t) } catch (_) {}
+      sub.triggerAttack(p.subPitch, t + 0.3, 0.6)
+    } else {
+      try { sub.triggerRelease(t) } catch (_) {}
+    }
 
-    // Update LFO sweep ranges
-    if (n.lfo1Gain) this._ramp(n.lfo1Gain.gain, p.bandLow * 0.5, now, end)
-    if (n.lfo2Gain) this._ramp(n.lfo2Gain.gain, p.bandHigh * 0.3, now, end)
+    // ── MORPH EFFECTS ──
+    distort.set({ distortion: p.distortion, wet: p.distortion > 0 ? 0.3 : 0 })
+    reverb.set({ decay: p.reverbDecay, wet: p.reverbWet })
+    chorus.set({ frequency: p.chorusFreq, depth: p.chorusDepth })
+    delay.set({ feedback: p.delayFeedback, wet: p.delayWet })
+    panner.set({ frequency: p.panRate })
 
-    // Update master volume
-    const totalGain = p.noiseGain + p.toneGain
-    this._ramp(this._masterGain.gain, totalGain, now, end)
-  }
-
-  // ------------------------------------------------------------ HELPERS
-
-  _ramp(param, target, now, end) {
-    param.setValueAtTime(param.value, now)
-    param.linearRampToValueAtTime(target, end)
+    // ── MORPH LFO ──
+    filterLfo.set({ frequency: p.lfoRate })
+    padFilter.frequency.linearRampTo(p.noiseCutoff * 0.8, MORPH_TIME)
   }
 }
