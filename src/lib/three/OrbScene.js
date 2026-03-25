@@ -161,7 +161,7 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initGeometryAndMaterial() {
-    const geometry = new THREE.SphereGeometry(1, 256, 256)
+    const geometry = new THREE.SphereGeometry(1, 512, 512)
 
     // Match blobmixer's MeshPhysicalMaterial setup exactly:
     // Low roughness (0.14) + full clearcoat + moderate clearcoat roughness
@@ -253,23 +253,26 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initLights() {
-    // With scene.environmentIntensity at 0.15, point lights are the PRIMARY
-    // source of diffuse lighting. Reasonable intensities now work.
+    // decay: 0 disables inverse-square falloff — light is uniform everywhere.
+    // Without this, lights at distance 4 lose 94% intensity with decay: 2.
     const ambient = new THREE.AmbientLight(0xffffff, 0.1)
     this._scene.add(ambient)
 
     // Key — upper right
-    this._keyLight = new THREE.PointLight(0xffeedd, 10, 12)
+    this._keyLight = new THREE.PointLight(0xffeedd, 3)
+    this._keyLight.decay = 0
     this._keyLight.position.set(2.5, 3, 3)
     this._scene.add(this._keyLight)
 
     // Fill — left
-    this._fillLight = new THREE.PointLight(0xddccff, 10, 12)
+    this._fillLight = new THREE.PointLight(0xddccff, 3)
+    this._fillLight.decay = 0
     this._fillLight.position.set(-3, 0, 2.5)
     this._scene.add(this._fillLight)
 
     // Rim — behind
-    this._rimLight = new THREE.PointLight(0xffccaa, 8, 12)
+    this._rimLight = new THREE.PointLight(0xffccaa, 2)
+    this._rimLight.decay = 0
     this._rimLight.position.set(0, -2.5, -3)
     this._scene.add(this._rimLight)
   }
