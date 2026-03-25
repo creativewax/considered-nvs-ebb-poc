@@ -125,7 +125,8 @@ export class OrbScene {
       powerPreference: 'high-performance',
     })
     renderer.setClearColor(0xFDFCFB, 1)
-    renderer.toneMapping = THREE.NoToneMapping  // Raw colours — no desaturation
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 2.5  // High exposure counteracts ACES darkening
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setSize(width, height)
@@ -141,7 +142,7 @@ export class OrbScene {
     // Low environmentIntensity: HDRI provides subtle specular reflections only.
     // Point lights handle ALL diffuse colouring — this is why they were invisible
     // before. The env map was fully illuminating the surface, drowning them out.
-    this._scene.environmentIntensity = 0  // Zero — no IBL, point lights only
+    this._scene.environmentIntensity = 0.4  // Moderate — sharp reflections from HDRI
   }
 
   // ------------------------------------------------------------
@@ -165,11 +166,11 @@ export class OrbScene {
     // Low clearcoat to avoid adding a white reflective wash on top.
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
-      roughness: 0.25,
-      metalness: 0.8,
-      clearcoat: 0.1,
-      clearcoatRoughness: 0.3,
-      envMapIntensity: 0.5,
+      roughness: 0.15,
+      metalness: 0.5,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.2,
+      envMapIntensity: 1.0,
     })
 
     // CRITICAL: force Three.js to compile OUR modified shader instead of
