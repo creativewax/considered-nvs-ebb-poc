@@ -151,7 +151,7 @@ export class OrbScene {
 
   _initCamera(width, height) {
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
-    camera.position.set(0, 0, 5.5)  // Pulled back — orb needs room for displacement
+    camera.position.set(0, 0, 3.8)  // Closer — orb fills more of the frame
     this._camera = camera
   }
 
