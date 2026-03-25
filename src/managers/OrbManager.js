@@ -62,23 +62,23 @@ const RANGES = {
   tendrilCount:       [50, 8,       ease.inQuad],        // Drops fast — few tendrils for good sleep
   tendrilLength:      [0.35, 0.08,  ease.inSine],        // Shorter quickly
   tendrilThickness:   [0.01, 0.005, ease.inOutQuad],       // Gentle thinning
-  gradIntensity:      [2.5, 1.5,   ease.outQuad],          // More intense colour at low scores
+  gradIntensity:      [3.0, 1.5,   ease.inOutSine],          // More intense colour at low scores
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
 // Scored from worst → best. Interpolate between nearest two.
 
 const COLOUR_STOPS = [
-  { score: 0,   color: '#782888', lightKey: '#D0566C', lightFill: '#6B3FA0', lightRim: '#8B2252' },
-  { score: 12,  color: '#982040', lightKey: '#8B2252', lightFill: '#D0566C', lightRim: '#6B3FA0' },
-  { score: 25,  color: '#B83848', lightKey: '#D0566C', lightFill: '#E8834A', lightRim: '#6B3FA0' },
-  { score: 40,  color: '#D06830', lightKey: '#E8834A', lightFill: '#D4A84B', lightRim: '#D0566C' },
-  { score: 50,  color: '#C89830', lightKey: '#D4A84B', lightFill: '#E8834A', lightRim: '#7BAFAA' },
-  { score: 60,  color: '#5A9A8A', lightKey: '#7BAFAA', lightFill: '#D4A84B', lightRim: '#44AEC6' },
-  { score: 70,  color: '#3898B0', lightKey: '#44AEC6', lightFill: '#3DAA7A', lightRim: '#7BAFAA' },
-  { score: 80,  color: '#3A9A6A', lightKey: '#3DAA7A', lightFill: '#88DDC0', lightRim: '#44AEC6' },
-  { score: 90,  color: '#78C8AA', lightKey: '#88DDC0', lightFill: '#44AEC6', lightRim: '#E8DCC8' },
-  { score: 100, color: '#78C8AA', lightKey: '#88DDC0', lightFill: '#44AEC6', lightRim: '#E8DCC8' },
+  { score: 0,   color: '#782888', lightKey: '#A0405A', lightFill: '#5A2880', lightRim: '#702040' },
+  { score: 12,  color: '#982040', lightKey: '#B84058', lightFill: '#A03060', lightRim: '#803068' },
+  { score: 25,  color: '#B83848', lightKey: '#D86070', lightFill: '#E89060', lightRim: '#885090' },
+  { score: 40,  color: '#D06830', lightKey: '#F0A050', lightFill: '#E8B060', lightRim: '#D08070' },
+  { score: 50,  color: '#C89830', lightKey: '#F0C848', lightFill: '#F0A850', lightRim: '#90C8A0' },
+  { score: 60,  color: '#5A9A8A', lightKey: '#90D0B8', lightFill: '#E8C860', lightRim: '#60C8E0' },
+  { score: 70,  color: '#3898B0', lightKey: '#60D0E8', lightFill: '#50C888', lightRim: '#90D8C8' },
+  { score: 80,  color: '#3A9A6A', lightKey: '#58D898', lightFill: '#A8F0D8', lightRim: '#68D8E8' },
+  { score: 90,  color: '#78C8AA', lightKey: '#A0F0D8', lightFill: '#70E0E8', lightRim: '#F0E8D0' },
+  { score: 100, color: '#78C8AA', lightKey: '#B8F8E0', lightFill: '#88E8F0', lightRim: '#F8F0E0' },
 ]
 
 // Interpolate hex colours
