@@ -7,7 +7,9 @@ import * as THREE from 'three'
 
 // ------------------------------------------------------------ CONFIG
 
-const CUBES_PER_PATH = 96  // Very dense — many small cubes forming solid ribbons
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const CUBES_PER_PATH = IS_MOBILE ? 32 : 96
+const MAX_PATHS_MOBILE = 25
 
 // ------------------------------------------------------------ TENDRIL SYSTEM
 
@@ -27,7 +29,8 @@ export class TendrilSystem {
   build(config) {
     this.dispose()
 
-    const pathCount = config.tendrilCount * 2.0 ?? 60
+    const rawCount = (config.tendrilCount ?? 30) * 2.0
+    const pathCount = IS_MOBILE ? Math.min(rawCount, MAX_PATHS_MOBILE) : rawCount
     const totalInstances = pathCount * CUBES_PER_PATH
     this._pathCount = pathCount
     this._totalInstances = totalInstances

@@ -42,6 +42,11 @@ const TWEENED_MATERIAL_KEYS = [
   'envMapIntensity', 'transmission', 'ior',
 ]
 
+// ── MOBILE PERFORMANCE SCALING ──
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const SPHERE_SEGMENTS = IS_MOBILE ? 128 : 256
+const PIXEL_RATIO_CAP = IS_MOBILE ? 1.0 : 1.5
+
 export class OrbScene {
   constructor() {
     this._renderer = null
@@ -120,7 +125,7 @@ export class OrbScene {
 
   _initRenderer(width, height) {
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !IS_MOBILE,  // Skip AA on mobile for performance
       alpha: false,
       powerPreference: 'high-performance',
     })
@@ -128,7 +133,7 @@ export class OrbScene {
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 2.5  // High exposure counteracts ACES darkening
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, PIXEL_RATIO_CAP))
     renderer.setSize(width, height)
     this._renderer = renderer
   }
@@ -142,7 +147,7 @@ export class OrbScene {
     // Low environmentIntensity: HDRI provides subtle specular reflections only.
     // Point lights handle ALL diffuse colouring — this is why they were invisible
     // before. The env map was fully illuminating the surface, drowning them out.
-    this._scene.environmentIntensity = 0.6  // Sharp reflections, adds depth to material
+    this._scene.environmentIntensity = 0.95  // Sharp reflections, adds depth to material
   }
 
   // ------------------------------------------------------------
@@ -160,7 +165,7 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   _initGeometryAndMaterial() {
-    const geometry = new THREE.SphereGeometry(1, 512, 512)
+    const geometry = new THREE.SphereGeometry(1, SPHERE_SEGMENTS, SPHERE_SEGMENTS)
 
     // Metallic base so specular reflections carry light colour (not white).
     // Low clearcoat to avoid adding a white reflective wash on top.
@@ -256,19 +261,19 @@ export class OrbScene {
     this._scene.add(ambient)
 
     // Key — upper right
-    this._keyLight = new THREE.PointLight(0xffeedd, 2.5)
+    this._keyLight = new THREE.PointLight(0xffeedd, 70.5)
     this._keyLight.decay = 0
     this._keyLight.position.set(2, 2.5, 2.5)
     this._scene.add(this._keyLight)
 
     // Fill — left (closer for stronger tint)
-    this._fillLight = new THREE.PointLight(0xddccff, 2.0)
+    this._fillLight = new THREE.PointLight(0xddccff, 70.5)
     this._fillLight.decay = 0
     this._fillLight.position.set(-2.5, -0.5, 2)
     this._scene.add(this._fillLight)
 
     // Rim — behind
-    this._rimLight = new THREE.PointLight(0xffccaa, 1.5)
+    this._rimLight = new THREE.PointLight(0xffccaa, 70.5)
     this._rimLight.decay = 0
     this._rimLight.position.set(0.5, -2, -2.5)
     this._scene.add(this._rimLight)
