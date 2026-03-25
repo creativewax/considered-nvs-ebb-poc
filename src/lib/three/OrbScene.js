@@ -164,13 +164,12 @@ export class OrbScene {
     // Metallic base so specular reflections carry light colour (not white).
     // Low clearcoat to avoid adding a white reflective wash on top.
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0x000000,
-      roughness: 0.0,
-      metalness: 0.0,
-      clearcoat: 0.0,
-      clearcoatRoughness: 0.7,
-      envMapIntensity: 0.8,
-      reflectivity: 0.5,
+      color: 0xffffff,
+      roughness: 0.25,
+      metalness: 0.8,
+      clearcoat: 0.1,
+      clearcoatRoughness: 0.3,
+      envMapIntensity: 0.5,
     })
 
     // CRITICAL: force Three.js to compile OUR modified shader instead of
