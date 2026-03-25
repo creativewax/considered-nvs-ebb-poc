@@ -164,10 +164,10 @@ export class OrbScene {
     // Metallic base so specular reflections carry light colour (not white).
     // Low clearcoat to avoid adding a white reflective wash on top.
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      roughness: 0.25,
-      metalness: 0.6,
-      clearcoat: 0.3,
+      color: 0x000000,
+      roughness: 0.0,
+      metalness: 0.0,
+      clearcoat: 0.0,
       clearcoatRoughness: 0.7,
       envMapIntensity: 0.8,
       reflectivity: 0.5,
@@ -389,6 +389,13 @@ export class OrbScene {
   // ------------------------------------------------------------
 
   updateConfig(config) {
+    // DEBUG: log what's being applied to the material
+    console.log('[OrbScene] Material BEFORE update:', {
+      color: this._mesh?.material?.color?.getHexString(),
+      roughness: this._mesh?.material?.roughness,
+      metalness: this._mesh?.material?.metalness,
+      clearcoat: this._mesh?.material?.clearcoat,
+    })
     if (!config || !this._mesh) return
     console.log('[OrbScene] updateConfig:', config.quality, 'distort:', config.distort)
     this._lastConfig = config
