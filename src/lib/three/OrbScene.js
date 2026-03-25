@@ -260,11 +260,11 @@ export class OrbScene {
           vec3 viewNorm = normalize(vNormal);
 
           // Three blend weights based on normal direction
-          float wA = max(0.0, dot(viewNorm, normalize(vec3(0.8, 0.5, 0.3))));   // upper-right
-          float wB = max(0.0, dot(viewNorm, normalize(vec3(-0.6, -0.2, 0.4)))); // left
-          float wC = max(0.0, dot(viewNorm, normalize(vec3(0.1, -0.7, -0.5)))); // below-behind
+          // pow() sharpens the falloff — higher = tighter, more focused highlights
+          float wA = pow(max(0.0, dot(viewNorm, normalize(vec3(0.8, 0.5, 0.3)))), 3.0);
+          float wB = pow(max(0.0, dot(viewNorm, normalize(vec3(-0.6, -0.2, 0.4)))), 3.0);
+          float wC = pow(max(0.0, dot(viewNorm, normalize(vec3(0.1, -0.7, -0.5)))), 3.0);
 
-          // Normalise weights
           float total = wA + wB + wC + 0.001;
           wA /= total;
           wB /= total;

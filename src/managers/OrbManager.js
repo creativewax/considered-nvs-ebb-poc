@@ -62,7 +62,7 @@ const RANGES = {
   tendrilCount:       [50, 8,       ease.inQuad],        // Drops fast — few tendrils for good sleep
   tendrilLength:      [0.35, 0.08,  ease.inSine],        // Shorter quickly
   tendrilThickness:   [0.01, 0.005, ease.inOutQuad],       // Gentle thinning
-  gradIntensity:      [3.0, 1.5,   ease.inOutSine],          // More intense colour at low scores
+  gradIntensity:      [5.0, 3.0,   ease.inOutSine],          // More intense colour at low scores
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
