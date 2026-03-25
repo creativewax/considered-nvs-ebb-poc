@@ -1,8 +1,9 @@
 // src/components/results/ResultsHeader.jsx
 
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, Share2, Settings } from 'lucide-react'
+import { ChevronLeft, Share2, Volume2, VolumeX } from 'lucide-react'
 import { QUALITY_LABELS } from '../../constants/sleep'
+import { formatDuration } from '../../lib/utils'
 import styles from './ResultsHeader.module.css'
 
 // ------------------------------------------------------------
@@ -14,7 +15,7 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })
 }
 
-export function ResultsHeader({ record }) {
+export function ResultsHeader({ record, playing, onToggleSound }) {
   const navigate = useNavigate()
   const qualityLabel = QUALITY_LABELS[record.quality] || 'Sleep'
   const dateLabel = formatDate(record.date)
@@ -33,18 +34,25 @@ export function ResultsHeader({ record }) {
           <h1 className={styles.title}>
             {qualityLabel} Sleep, {dateLabel}
           </h1>
-          <span className={styles.badge}>
-            <span className={styles.badgeDot} />
-            Connected
-          </span>
+          <p className={styles.qualitySub}>
+            {formatDuration(record.sleepDuration)} &middot; {record.bedtime} – {record.wakeTime}
+          </p>
         </div>
       </div>
       <div className={styles.actions}>
+        <span className={styles.badge}>
+          <span className={styles.badgeDot} />
+          Connected
+        </span>
         <button className={styles.iconBtn} aria-label="Share">
           <Share2 size={18} />
         </button>
-        <button className={styles.iconBtn} aria-label="Settings">
-          <Settings size={18} />
+        <button
+          className={styles.iconBtn}
+          onClick={onToggleSound}
+          aria-label={playing ? 'Mute sound' : 'Play sound'}
+        >
+          {playing ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>
       </div>
     </header>

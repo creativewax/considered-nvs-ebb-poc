@@ -3,15 +3,16 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BasePage from '../components/common/BasePage'
+import { ResultsHeader } from '../components/results/ResultsHeader'
 import { MetricsRow } from '../components/common/MetricsRow'
 import { OrbCanvas } from '../components/orb/OrbCanvas'
 import { Hypnogram } from '../components/charts/Hypnogram'
 import { useSleep } from '../hooks/useSleep'
 import { useOrb } from '../hooks/useOrb'
+import { useSound } from '../hooks/useSound'
 import { QUALITY_LABELS, scoreToQuality } from '../constants/sleep'
 import { QUALITY_COLOURS } from '../constants/colours'
 import { buildResultsPath } from '../constants/routes'
-import { formatDuration } from '../lib/utils'
 import styles from './HealthPage.module.css'
 
 // ------------------------------------------------------------ HEALTH PAGE
@@ -22,6 +23,7 @@ export default function HealthPage() {
   const navigate = useNavigate()
   const { records, loadRecords, selectRecord } = useSleep()
   const { config } = useOrb()
+  const { playing, play, stop } = useSound()
 
   useEffect(() => { loadRecords() }, [])
 
@@ -31,6 +33,8 @@ export default function HealthPage() {
   useEffect(() => {
     if (latest?.id) selectRecord(latest.id)
   }, [latest?.id])
+
+  const toggleSound = () => playing ? stop() : play()
 
   if (!latest) {
     return (
@@ -49,26 +53,11 @@ export default function HealthPage() {
 
   return (
     <BasePage>
+      <ResultsHeader record={latest} playing={playing} onToggleSound={toggleSound} />
       <div className="page-content">
 
         {/* ---- ORB ---- */}
         <OrbCanvas config={config} quality={quality} />
-
-        {/* ---- QUALITY HEADER ---- */}
-        <div className={`card ${styles.qualityHeader}`}>
-          <p className={styles.qualityLabel} style={{ color: colour }}>
-            {label} Sleep
-          </p>
-          <p className={styles.qualityScore}>{latest.score}</p>
-          <p className={styles.qualitySub}>
-            {formatDuration(latest.sleepDuration)} &middot; {latest.bedtime} – {latest.wakeTime}
-          </p>
-        </div>
-
-        {/* ---- METRICS RINGS ---- */}
-        <div className="card">
-          <MetricsRow record={latest} />
-        </div>
 
         {/* ---- HYPNOGRAM ---- */}
         <Hypnogram
@@ -76,6 +65,11 @@ export default function HealthPage() {
           bedtime={latest.bedtime}
           wakeTime={latest.wakeTime}
         />
+
+        {/* ---- METRICS RINGS ---- */}
+        <div className="card">
+          <MetricsRow record={latest} />
+        </div>
 
         {/* ---- VIEW FULL REPORT ---- */}
         <button
