@@ -362,19 +362,6 @@ export class OrbScene {
       this._tendrils.update(0.016, this._lastConfig)
     }
 
-    // Chromatic aberration — ramp up during interaction, ease down after
-    const targetChromatic = this._isInteracting ? 3 : 0
-    this._chromaticAmount += (targetChromatic - this._chromaticAmount) * 0.08
-    if (this._renderer?.domElement) {
-      const ca = this._chromaticAmount
-      if (ca > 0.1) {
-        // Offset RGB channels slightly via CSS drop-shadow trick
-        this._renderer.domElement.style.filter =
-          `drop-shadow(${ca}px 0 0 rgba(255,0,0,0.15)) drop-shadow(${-ca}px 0 0 rgba(0,0,255,0.15))`
-      } else {
-        this._renderer.domElement.style.filter = ''
-      }
-    }
 
     this._controls?.update()
     this._renderer.render(this._scene, this._camera)
