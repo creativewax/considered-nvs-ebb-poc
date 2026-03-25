@@ -36,14 +36,14 @@ export class TendrilSystem {
     const thickness = config.tendrilThickness ?? 0.01
     const geo = new THREE.BoxGeometry(thickness * 2, thickness * 2, thickness * 2)
 
-    // Rich metallic material
+    // Metallic but not mirror-shiny — picks up coloured light
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(config.lightKey ?? config.color ?? '#ffffff'),
-      roughness: 0.15,
-      metalness: 0.95,
-      clearcoat: 1,
-      clearcoatRoughness: 0.25,
-      envMapIntensity: 2.0,
+      roughness: 0.4,
+      metalness: 0.7,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.5,
+      envMapIntensity: 0.3,
     })
 
     if (this._scene.environment) {

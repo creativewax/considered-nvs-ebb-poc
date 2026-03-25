@@ -124,10 +124,8 @@ export class OrbScene {
       alpha: false,
       powerPreference: 'high-performance',
     })
-    renderer.setClearColor(0xFDFCFB, 1)  // Match page bg
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 2.2  // Bright — vivid colours through ACES
-    renderer.toneMappingExposure = 1.0
+    renderer.setClearColor(0xFDFCFB, 1)
+    renderer.toneMapping = THREE.NoToneMapping  // Raw colours — no desaturation
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setSize(width, height)

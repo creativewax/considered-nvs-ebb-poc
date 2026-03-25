@@ -19,7 +19,7 @@ const ORB_PRESETS = {
     envMapIntensity: 1.5, transmission: 0.5, ior: 2.0,
     lightKey: '#88DDC0', lightFill: '#44AEC6', lightRim: '#E8DCC8',
     tendrilCount: 20, tendrilLength: 0.15, tendrilThickness: 0.006,
-    color: '#e8e8e8',
+    color: '#ffffff',
   },
 
   very_good: {
@@ -30,7 +30,7 @@ const ORB_PRESETS = {
     envMapIntensity: 1.0, transmission: 0.2,
     lightKey: '#3DAA7A', lightFill: '#88DDC0', lightRim: '#44AEC6',
     tendrilCount: 30, tendrilLength: 0.2, tendrilThickness: 0.007,
-    color: '#e0e0e0',
+    color: '#ffffff',
   },
 
   good: {
@@ -41,7 +41,7 @@ const ORB_PRESETS = {
     envMapIntensity: 1.2, transmission: 0.1,
     lightKey: '#44AEC6', lightFill: '#3DAA7A', lightRim: '#7BAFAA',
     tendrilCount: 40, tendrilLength: 0.25, tendrilThickness: 0.008,
-    color: '#dddddd',
+    color: '#ffffff',
   },
 
   moderate: {
@@ -52,7 +52,7 @@ const ORB_PRESETS = {
     envMapIntensity: 1.0, transmission: 0,
     lightKey: '#7BAFAA', lightFill: '#D4A84B', lightRim: '#44AEC6',
     tendrilCount: 50, tendrilLength: 0.3, tendrilThickness: 0.009,
-    color: '#d8d8d8',
+    color: '#ffffff',
   },
 
   fair: {
@@ -63,7 +63,7 @@ const ORB_PRESETS = {
     envMapIntensity: 1.0, transmission: 0.2,
     lightKey: '#D4A84B', lightFill: '#E8834A', lightRim: '#7BAFAA',
     tendrilCount: 60, tendrilLength: 0.35, tendrilThickness: 0.01,
-    color: '#d5d5d5',
+    color: '#ffffff',
   },
 
   restless: {
@@ -74,7 +74,7 @@ const ORB_PRESETS = {
     envMapIntensity: 0.6, transmission: 0,
     lightKey: '#E8834A', lightFill: '#D4A84B', lightRim: '#D0566C',
     tendrilCount: 75, tendrilLength: 0.4, tendrilThickness: 0.01,
-    color: '#d0d0d0',
+    color: '#ffffff',
   },
 
   poor: {
@@ -85,7 +85,7 @@ const ORB_PRESETS = {
     envMapIntensity: 0.8, transmission: 0,
     lightKey: '#D0566C', lightFill: '#E8834A', lightRim: '#6B3FA0',
     tendrilCount: 90, tendrilLength: 0.45, tendrilThickness: 0.011,
-    color: '#cccccc',
+    color: '#ffffff',
   },
 
   very_poor: {
@@ -96,7 +96,7 @@ const ORB_PRESETS = {
     envMapIntensity: 0.6, transmission: 0,
     lightKey: '#8B2252', lightFill: '#D0566C', lightRim: '#6B3FA0',
     tendrilCount: 100, tendrilLength: 0.5, tendrilThickness: 0.012,
-    color: '#c8c8c8',
+    color: '#ffffff',
   },
 
   disrupted: {
@@ -107,7 +107,7 @@ const ORB_PRESETS = {
     envMapIntensity: 0.6, transmission: 0,
     lightKey: '#D0566C', lightFill: '#6B3FA0', lightRim: '#8B2252',
     tendrilCount: 120, tendrilLength: 0.6, tendrilThickness: 0.012,
-    color: '#c5c5c5',
+    color: '#ffffff',
   },
 }
 
