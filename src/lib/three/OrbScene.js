@@ -34,7 +34,7 @@ const DEFAULT_UNIFORMS = {
 const TWEENED_UNIFORM_KEYS = [
   'distort', 'frequency', 'surfaceDistort', 'surfaceFrequency',
   'numberOfWaves', 'surfacePoleAmount', 'gooPoleAmount',
-  'twist', 'twistFrequency', 'gradIntensity',
+  'twist', 'twistFrequency', 'gradIntensity', 'gradFocus',
 ]
 
 const TWEENED_MATERIAL_KEYS = [
@@ -196,6 +196,7 @@ export class OrbScene {
       shader.uniforms.uGradColB = { value: new THREE.Color(0xffffff) }
       shader.uniforms.uGradColC = { value: new THREE.Color(0xffffff) }
       shader.uniforms.gradIntensity = { value: 2.0 }
+      shader.uniforms.gradFocus = { value: 3.0 }
 
       // Check what chunks exist in the vertex shader
       const hasBeginVertex = shader.vertexShader.includes('#include <begin_vertex>')
@@ -247,6 +248,7 @@ export class OrbScene {
         uniform vec3 uGradColB;
         uniform vec3 uGradColC;
         uniform float gradIntensity;
+        uniform float gradFocus;
       ` + shader.fragmentShader
 
       // Replace the diffuse color chunk to inject our gradient
@@ -261,9 +263,9 @@ export class OrbScene {
 
           // Three blend weights based on normal direction
           // pow() sharpens the falloff — higher = tighter, more focused highlights
-          float wA = pow(max(0.0, dot(viewNorm, normalize(vec3(0.8, 0.5, 0.3)))), 3.0);
-          float wB = pow(max(0.0, dot(viewNorm, normalize(vec3(-0.6, -0.2, 0.4)))), 3.0);
-          float wC = pow(max(0.0, dot(viewNorm, normalize(vec3(0.1, -0.7, -0.5)))), 3.0);
+          float wA = pow(max(0.0, dot(viewNorm, normalize(vec3(0.8, 0.5, 0.3)))), gradFocus);
+          float wB = pow(max(0.0, dot(viewNorm, normalize(vec3(-0.6, -0.2, 0.4)))), gradFocus);
+          float wC = pow(max(0.0, dot(viewNorm, normalize(vec3(0.1, -0.7, -0.5)))), gradFocus);
 
           float total = wA + wB + wC + 0.001;
           wA /= total;

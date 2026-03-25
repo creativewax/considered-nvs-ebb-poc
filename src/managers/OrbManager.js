@@ -63,6 +63,7 @@ const RANGES = {
   tendrilLength:      [0.35, 0.08,  ease.inSine],        // Shorter quickly
   tendrilThickness:   [0.01, 0.005, ease.inOutQuad],       // Gentle thinning
   gradIntensity:      [5.0, 3.0,   ease.inOutSine],          // More intense colour at low scores
+  gradFocus:          [2.0, 4.0,   ease.inOutQuad],          // 1=broad wash, 3=focused, 6+=pinpoint
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
