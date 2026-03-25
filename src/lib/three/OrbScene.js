@@ -142,7 +142,7 @@ export class OrbScene {
     // Low environmentIntensity: HDRI provides subtle specular reflections only.
     // Point lights handle ALL diffuse colouring — this is why they were invisible
     // before. The env map was fully illuminating the surface, drowning them out.
-    this._scene.environmentIntensity = 0.4  // Moderate — sharp reflections from HDRI
+    this._scene.environmentIntensity = 0.6  // Sharp reflections, adds depth to material
   }
 
   // ------------------------------------------------------------
@@ -255,20 +255,20 @@ export class OrbScene {
     const ambient = new THREE.AmbientLight(0xffffff, 0.1)
     this._scene.add(ambient)
 
-    // Key — upper right
-    this._keyLight = new THREE.PointLight(0xff0000, 5)
+    // Key — upper right (subtle tinting, not blasting)
+    this._keyLight = new THREE.PointLight(0xffeedd, 1.5)
     this._keyLight.decay = 0
     this._keyLight.position.set(2.5, 3, 3)
     this._scene.add(this._keyLight)
 
     // Fill — left
-    this._fillLight = new THREE.PointLight(0x0000ff, 5)
+    this._fillLight = new THREE.PointLight(0xddccff, 1.2)
     this._fillLight.decay = 0
     this._fillLight.position.set(-3, 0, 2.5)
     this._scene.add(this._fillLight)
 
     // Rim — behind
-    this._rimLight = new THREE.PointLight(0x00ff00, 5)
+    this._rimLight = new THREE.PointLight(0xffccaa, 0.8)
     this._rimLight.decay = 0
     this._rimLight.position.set(0, -2.5, -3)
     this._scene.add(this._rimLight)

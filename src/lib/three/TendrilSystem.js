@@ -43,7 +43,7 @@ export class TendrilSystem {
       metalness: 0.7,
       clearcoat: 0.3,
       clearcoatRoughness: 0.5,
-      envMapIntensity: 0.3,
+      envMapIntensity: 1.0,
     })
 
     if (this._scene.environment) {
