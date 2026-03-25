@@ -13,7 +13,7 @@ import { QUALITY_COLOURS } from '../constants/colours.js'
 const ORB_PRESETS = {
 
   excellent: {
-    distort: 0.03, frequency: 3.0, surfaceDistort: 0.02, surfaceFrequency: 1.5,
+    distort: 0.15, frequency: 2.5, surfaceDistort: 0.15, surfaceFrequency: 1.5,
     speed: 0.002, surfaceSpeed: 0.001, numberOfWaves: 2.0,
     surfacePoleAmount: 1, gooPoleAmount: 1, twist: 0, twistFrequency: 1.0,
     roughness: 0.05, metalness: 0.4, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -23,7 +23,7 @@ const ORB_PRESETS = {
   },
 
   very_good: {
-    distort: 0.08, frequency: 2.5, surfaceDistort: 0.05, surfaceFrequency: 1.2,
+    distort: 0.25, frequency: 2.0, surfaceDistort: 0.2, surfaceFrequency: 1.2,
     speed: 0.003, surfaceSpeed: 0.002, numberOfWaves: 2.5,
     surfacePoleAmount: 1, gooPoleAmount: 1, twist: 0.05, twistFrequency: 0.8,
     roughness: 0.08, metalness: 0.45, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -33,7 +33,7 @@ const ORB_PRESETS = {
   },
 
   good: {
-    distort: 0.15, frequency: 2.0, surfaceDistort: 0.1, surfaceFrequency: 0.9,
+    distort: 0.35, frequency: 1.8, surfaceDistort: 0.3, surfaceFrequency: 0.9,
     speed: 0.004, surfaceSpeed: 0.003, numberOfWaves: 3.0,
     surfacePoleAmount: 0.9, gooPoleAmount: 0.9, twist: 0.1, twistFrequency: 0.7,
     roughness: 0.1, metalness: 0.48, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -43,7 +43,7 @@ const ORB_PRESETS = {
   },
 
   moderate: {
-    distort: 0.25, frequency: 1.5, surfaceDistort: 0.2, surfaceFrequency: 0.7,
+    distort: 0.4, frequency: 1.5, surfaceDistort: 0.35, surfaceFrequency: 0.7,
     speed: 0.005, surfaceSpeed: 0.004, numberOfWaves: 3.5,
     surfacePoleAmount: 0.8, gooPoleAmount: 0.8, twist: 0.2, twistFrequency: 0.6,
     roughness: 0.12, metalness: 0.5, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -53,7 +53,7 @@ const ORB_PRESETS = {
   },
 
   fair: {
-    distort: 0.35, frequency: 1.2, surfaceDistort: 0.3, surfaceFrequency: 0.5,
+    distort: 0.48, frequency: 1.2, surfaceDistort: 0.4, surfaceFrequency: 0.5,
     speed: 0.006, surfaceSpeed: 0.005, numberOfWaves: 4.0,
     surfacePoleAmount: 0.7, gooPoleAmount: 0.7, twist: 0.3, twistFrequency: 0.55,
     roughness: 0.15, metalness: 0.52, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -63,7 +63,7 @@ const ORB_PRESETS = {
   },
 
   restless: {
-    distort: 0.45, frequency: 0.9, surfaceDistort: 0.4, surfaceFrequency: 0.4,
+    distort: 0.55, frequency: 0.9, surfaceDistort: 0.5, surfaceFrequency: 0.4,
     speed: 0.008, surfaceSpeed: 0.006, numberOfWaves: 5.0,
     surfacePoleAmount: 0.6, gooPoleAmount: 0.6, twist: 0.4, twistFrequency: 0.5,
     roughness: 0.18, metalness: 0.55, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -73,7 +73,7 @@ const ORB_PRESETS = {
   },
 
   poor: {
-    distort: 0.55, frequency: 0.7, surfaceDistort: 0.5, surfaceFrequency: 0.3,
+    distort: 0.62, frequency: 0.7, surfaceDistort: 0.58, surfaceFrequency: 0.3,
     speed: 0.009, surfaceSpeed: 0.007, numberOfWaves: 5.5,
     surfacePoleAmount: 0.5, gooPoleAmount: 0.5, twist: 0.5, twistFrequency: 0.45,
     roughness: 0.2, metalness: 0.55, clearcoat: 0.95, clearcoatRoughness: 0.02,
@@ -83,7 +83,7 @@ const ORB_PRESETS = {
   },
 
   very_poor: {
-    distort: 0.65, frequency: 0.6, surfaceDistort: 0.6, surfaceFrequency: 0.2,
+    distort: 0.7, frequency: 0.55, surfaceDistort: 0.65, surfaceFrequency: 0.2,
     speed: 0.01, surfaceSpeed: 0.008, numberOfWaves: 6.0,
     surfacePoleAmount: 0.3, gooPoleAmount: 0.3, twist: 0.7, twistFrequency: 0.35,
     roughness: 0.25, metalness: 0.55, clearcoat: 0.95, clearcoatRoughness: 0.02,
