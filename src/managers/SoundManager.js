@@ -1,5 +1,6 @@
 // src/managers/SoundManager.js
 
+import * as Tone from 'tone'
 import BaseManager from './BaseManager.js'
 import { AmbientEngine } from '../lib/audio/AmbientEngine.js'
 import { EVENTS } from '../constants/events.js'
@@ -23,20 +24,36 @@ class SoundManager extends BaseManager {
         this._engine?.setQuality(record.quality)
       }
     })
+
+    // Mobile browsers suspend AudioContext when the tab is hidden / phone locked.
+    // Resume on visibility change so sound comes back when the user returns.
+    this._onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && this._state.playing) {
+        try {
+          const ctx = Tone.getContext()?.rawContext
+          if (ctx?.state !== 'running') ctx?.resume()
+        } catch (_) {}
+      }
+    }
+    document.addEventListener('visibilitychange', this._onVisibilityChange)
   }
 
   // ------------------------------------------------------------
   // METHODS
   // ------------------------------------------------------------
 
-  // Toggle — user explicitly enables/disables sound
+  // Toggle — user explicitly enables/disables sound.
+  // iOS audio unlock happens synchronously in the component's native
+  // touchend handler (via iosUnlock.js) BEFORE this method is called.
   async toggle() {
     if (this._state.enabled) {
       this._setState({ enabled: false })
       this._stopEngine()
     } else {
       this._setState({ enabled: true })
-      await this._startEngine()
+      try { await this._startEngine() } catch (e) {
+        console.error('[SoundManager] engine start failed:', e)
+      }
     }
   }
 
@@ -92,6 +109,7 @@ class SoundManager extends BaseManager {
 
   dispose() {
     if (this._stopTimer) clearTimeout(this._stopTimer)
+    document.removeEventListener('visibilitychange', this._onVisibilityChange)
     this._engine?.dispose()
     this._engine = null
     this._refs = 0

@@ -58,10 +58,8 @@ export default function HealthPage() {
   return (
     <BasePage>
       <ResultsHeader record={latest} playing={playing} onToggleSound={toggle} />
+      <OrbCanvas config={config} quality={quality} />
       <div className="page-content">
-
-        {/* ---- ORB ---- */}
-        <OrbCanvas config={config} quality={quality} />
 
         {/* ---- HYPNOGRAM ---- */}
         <Hypnogram

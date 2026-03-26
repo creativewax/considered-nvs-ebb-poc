@@ -199,14 +199,25 @@ export class HoneycombSystem {
     for (const g of struts) g.dispose()
 
     // Polished metallic — shows 3D form via reflections and shading
-    const colour = config.lightRim ?? config.lightFill ?? config.color ?? '#ffffff'
+    const colour = '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
       roughness: 0.08,
-      metalness: 0.9,
+      metalness: 0.1,
       clearcoat: 1.0,
       clearcoatRoughness: 0.05,
-      envMapIntensity: 3.0,
+      envMapIntensity: 0.5,
+      transmission: 0.85,
+      ior: 1.5,
+      thickness: 0.25,
+      clearcoatRoughness: 0.1,
+      attenuationDistance: 0.75,
+      attenuationColor: new THREE.Color(colour),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
+      depthTest: false,
     })
 
     mat.customProgramCacheKey = () => 'ebb-honeycomb'

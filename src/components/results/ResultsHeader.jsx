@@ -1,9 +1,11 @@
 // src/components/results/ResultsHeader.jsx
 
-import { useNavigate } from 'react-router-dom'
+import { useRef, useCallback, useNavigate } from 'react'
+import { useNavigate as useNav } from 'react-router-dom'
 import { ChevronLeft, Share2, Volume2, VolumeX } from 'lucide-react'
 import { QUALITY_LABELS } from '../../constants/sleep'
 import { formatDuration } from '../../lib/utils'
+import { unlockIOSAudio } from '../../lib/audio/iosUnlock'
 import styles from './ResultsHeader.module.css'
 
 // ------------------------------------------------------------
@@ -16,9 +18,25 @@ function formatDate(dateStr) {
 }
 
 export function ResultsHeader({ record, playing, onToggleSound }) {
-  const navigate = useNavigate()
+  const navigate = useNav()
   const qualityLabel = QUALITY_LABELS[record.quality] || 'Sleep'
   const dateLabel = formatDate(record.date)
+
+  // iOS requires audio unlock from a synchronous native event handler.
+  // React's synthetic onClick can lose the user gesture context.
+  const soundBtnRef = useRef(null)
+  const attachedRef = useRef(false)
+  const soundRef = useCallback((node) => {
+    soundBtnRef.current = node
+    if (node && !attachedRef.current) {
+      attachedRef.current = true
+      node.addEventListener('touchend', (e) => {
+        e.preventDefault()
+        unlockIOSAudio()
+        onToggleSound()
+      }, { passive: false })
+    }
+  }, [onToggleSound])
 
   return (
     <header className={styles.header}>
@@ -48,6 +66,7 @@ export function ResultsHeader({ record, playing, onToggleSound }) {
           <Share2 size={18} />
         </button>
         <button
+          ref={soundRef}
           className={styles.iconBtn}
           onClick={onToggleSound}
           aria-label={playing ? 'Mute sound' : 'Play sound'}

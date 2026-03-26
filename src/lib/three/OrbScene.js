@@ -43,8 +43,9 @@ const TWEENED_MATERIAL_KEYS = [
   'envMapIntensity', 'transmission', 'ior',
 ]
 
-// ── MOBILE PERFORMANCE SCALING ──
+// ── PERFORMANCE SCALING ──
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const IS_SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 const SPHERE_SEGMENTS = IS_MOBILE ? 256 : 512
 const PIXEL_RATIO_CAP = IS_MOBILE ? 2.0 : 2.0
 
@@ -419,9 +420,11 @@ export class OrbScene {
       this._shader.uniforms.time.value += this._speed
       this._shader.uniforms.surfaceTime.value += this._surfaceSpeed
     }
-    // Animate tendrils
+    // Animate tendrils — every 4th frame on Safari for performance
     if (this._tendrils && this._lastConfig) {
-      this._tendrils.update(0.016, this._lastConfig)
+      if (!IS_SAFARI || (this._tendrilFrame = (this._tendrilFrame || 0) + 1) % 4 === 0) {
+        this._tendrils.update(IS_SAFARI ? 0.064 : 0.016, this._lastConfig)
+      }
     }
     // Animate honeycomb
     if (this._honeycomb && this._lastConfig) {

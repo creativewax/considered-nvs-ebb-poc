@@ -1,6 +1,7 @@
 // src/lib/audio/AmbientEngine.js
 
 import * as Tone from 'tone'
+import { getSharedContext } from './iosUnlock'
 
 // ------------------------------------------------------------ QUALITY PRESETS
 // Four layers: pad synth, shimmer, filtered noise, sub-bass pulse.
@@ -273,14 +274,24 @@ export class AmbientEngine {
     if (this._playing) return
     this._startedAt = Date.now()
 
-    // Tone.start() handles Chrome autoplay — must be called from user gesture
+    // If iOS unlock created a context, give it to Tone.js so all nodes
+    // route through the already-active context instead of a suspended one.
+    const shared = getSharedContext()
+    if (shared) {
+      Tone.setContext(shared)
+    }
     await Tone.start()
 
     const p = PRESETS[this._quality] || PRESETS.good
 
     // ── EFFECTS CHAIN ──
-    const reverb = new Tone.Reverb({ decay: p.reverbDecay, wet: p.reverbWet })
-    await reverb.generate()
+    // Freeverb is algorithmic (no OfflineAudioContext) — works on iOS Safari
+    // where Tone.Reverb's generate() silently fails or hangs
+    const reverb = new Tone.Freeverb({
+      roomSize: Math.min(0.95, 0.5 + p.reverbDecay / 16),
+      dampening: 3000,
+      wet: p.reverbWet,
+    })
 
     const distort = new Tone.Distortion({ distortion: p.distortion, wet: p.distortion > 0 ? 0.3 : 0 })
 
@@ -494,7 +505,7 @@ export class AmbientEngine {
 
     // ── MORPH EFFECTS ──
     distort.set({ distortion: p.distortion, wet: p.distortion > 0 ? 0.3 : 0 })
-    reverb.set({ decay: p.reverbDecay, wet: p.reverbWet })
+    reverb.set({ roomSize: Math.min(0.95, 0.5 + p.reverbDecay / 16), wet: p.reverbWet })
     chorus.set({ frequency: p.chorusFreq, depth: p.chorusDepth })
     delay.set({ feedback: p.delayFeedback, wet: p.delayWet })
     panner.set({ frequency: p.panRate })

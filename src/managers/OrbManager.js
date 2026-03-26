@@ -67,11 +67,11 @@ const RANGES = {
   tendrilPulseAmount: [0.25, 0.0,  ease.linear],           // How far tendrils pulse in/out from centre
   tendrilPulseRate:   [0.25, 0.0,   ease.outQuart],            // Pulse speed — fast/aggressive at low scores
   honeycombDensity:       [8.0, 5.0,   ease.outCubic],       // Sparse fragments → full lattice
-  honeycombCompleteness:  [0.0, 1.0, ease.linear],        // Shattered → mostly intact
-  honeycombRadius:        [1.5, 1.3,  ease.inOutSine],       // Tight cage → floating away
-  honeycombPulseRate:     [0.4, 0.1,   ease.inOutQuad],      // Erratic → calm
+  honeycombCompleteness:  [0.1, 1.0, ease.inOutQuad],        // Shattered → mostly intact
+  honeycombRadius:        [1.3, 1.15,  ease.inOutSine],       // Tight cage → floating away
+  honeycombPulseRate:     [0.25, 0.1,   ease.inOutQuad],      // Erratic → calm
   honeycombPulseAmount:   [0.5, 0.02,  ease.outQuad],        // Dramatic → gentle
-  honeycombThickness:     [0.05, 0.005, ease.linear],     // Thick heavy cage → delicate struts
+  honeycombThickness:     [0.015, 0.0025, ease.linear],     // Thick heavy cage → delicate struts
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
