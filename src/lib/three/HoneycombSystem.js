@@ -11,8 +11,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 const MAX_CENTRES_MOBILE = 30
 const MAX_CENTRES_DESKTOP = 80
-const STRUT_WIDTH = 0.004
-const STRUT_DEPTH = 0.004
+const DEFAULT_STRUT_SIZE = 0.006
 const SPHERE_RADIUS = 1.05 // Slightly outside the orb surface
 
 // ------------------------------------------------------------ SEEDED PRNG
@@ -80,13 +79,14 @@ function findNeighbours(centres, maxNeighbours = 6) {
 
 // ------------------------------------------------------------ STRUT GEOMETRY
 
-function buildStrutGeometry(pointA, pointB, edgeIndex, cellIndexA, seed) {
+function buildStrutGeometry(pointA, pointB, edgeIndex, cellIndexA, seed, strutSize) {
   const midpoint = new THREE.Vector3().addVectors(pointA, pointB).multiplyScalar(0.5)
   const direction = new THREE.Vector3().subVectors(pointB, pointA)
   const length = direction.length()
   direction.normalize()
 
-  const geo = new THREE.BoxGeometry(STRUT_WIDTH, STRUT_DEPTH, length)
+  const s = strutSize || DEFAULT_STRUT_SIZE
+  const geo = new THREE.BoxGeometry(s, s * 0.6, length)
 
   // Orient the box along the edge direction
   const quaternion = new THREE.Quaternion()
@@ -129,6 +129,7 @@ export class HoneycombSystem {
     this._time = 0
     this._lastDensity = 0
     this._lastCompleteness = 0
+    this._lastThickness = 0
   }
 
   // ------------------------------------------------------------ BUILD
@@ -138,8 +139,10 @@ export class HoneycombSystem {
 
     const density = config.honeycombDensity ?? 0.5
     const completeness = config.honeycombCompleteness ?? 0.85
+    const thickness = config.honeycombThickness ?? DEFAULT_STRUT_SIZE
 
     this._lastDensity = density
+    this._lastThickness = thickness
     this._lastCompleteness = completeness
 
     // Centre count scales with density
@@ -159,10 +162,11 @@ export class HoneycombSystem {
     if (keptEdges.length === 0) return
 
     // Build individual strut geometries
+    const strutSize = config.honeycombThickness ?? DEFAULT_STRUT_SIZE
     const struts = []
     for (let i = 0; i < keptEdges.length; i++) {
       const [a, b] = keptEdges[i]
-      const geo = buildStrutGeometry(centres[a], centres[b], i, a, rng())
+      const geo = buildStrutGeometry(centres[a], centres[b], i, a, rng(), strutSize)
       struts.push(geo)
     }
 
@@ -179,13 +183,14 @@ export class HoneycombSystem {
       color: new THREE.Color(colour),
       transmission: 0.85,
       ior: 1.45,
-      thickness: 0.02,
-      roughness: 0.12,
+      thickness: 0.15,
+      roughness: 0.05,
       metalness: 0,
-      clearcoat: 0.6,
-      clearcoatRoughness: 0.1,
-      envMapIntensity: 1.5,
-      transparent: true,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 2.0,
+      attenuationDistance: 0.5,
+      attenuationColor: new THREE.Color(colour),
     })
 
     mat.customProgramCacheKey = () => 'ebb-honeycomb'
@@ -254,16 +259,21 @@ export class HoneycombSystem {
 
     const density = config.honeycombDensity ?? 0.5
     const completeness = config.honeycombCompleteness ?? 0.85
+    const thickness = config.honeycombThickness ?? DEFAULT_STRUT_SIZE
 
-    // Rebuild when density or completeness shift noticeably
+    // Rebuild when density, completeness, or thickness shift noticeably
     const densityDelta = Math.abs(density - this._lastDensity)
     const completenessDelta = Math.abs(completeness - this._lastCompleteness)
+    const thicknessDelta = Math.abs(thickness - this._lastThickness)
 
-    if (densityDelta > 0.1 || completenessDelta > 0.1 || !this._mesh) {
+    if (densityDelta > 0.1 || completenessDelta > 0.1 || thicknessDelta > 0.002 || !this._mesh) {
       this.build(config)
     } else if (this._mesh) {
       const colour = config.lightKey ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
+      if (this._mesh.material.attenuationColor) {
+        this._mesh.material.attenuationColor.set(colour)
+      }
 
       // Update shader uniforms without rebuild
       if (this._shader) {
