@@ -196,18 +196,20 @@ export class HoneycombSystem {
     // Dispose individual strut geometries after merge
     for (const g of struts) g.dispose()
 
-    // Glassy material — fresnel shader handles alpha, PBR handles reflections
+    // Glass material — native Three.js transmission for real refraction
     const colour = config.lightKey ?? config.color ?? '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
-      roughness: 0.06,
-      metalness: 0.15,
+      transmission: 1.0,
+      roughness: 0.15,
+      metalness: 0,
+      ior: 1.5,
+      thickness: 0.5,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.04,
-      envMapIntensity: 3.5,
-      transparent: true,
-      opacity: 1.0,
-      depthWrite: false,
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 2.5,
+      attenuationDistance: 0.3,
+      attenuationColor: new THREE.Color(colour),
       side: THREE.DoubleSide,
     })
 
@@ -260,25 +262,6 @@ export class HoneycombSystem {
         `
       )
 
-      // Fragment shader — fresnel glass effect
-      // Edges catch light (bright, opaque), face-on surfaces are subtly visible
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <opaque_fragment>',
-        /* glsl */ `
-          // Fresnel — strong at glancing angles (edges), weak face-on
-          vec3 viewDir = normalize(vViewPosition);
-          vec3 norm = normalize(vNormal);
-          float fresnel = 1.0 - abs(dot(viewDir, norm));
-          fresnel = pow(fresnel, 1.5);  // softer curve than pow(2)
-
-          // Base visibility so struts never fully vanish + bright edges
-          float glassAlpha = mix(0.15, 0.85, fresnel);
-          // Additive edge glow — catches light like real glass
-          vec3 glassCol = gl_FragColor.rgb * (1.0 + fresnel * 0.8);
-
-          gl_FragColor = vec4(glassCol, glassAlpha);
-        `
-      )
     }
 
     if (this._scene.environment) {
