@@ -196,17 +196,18 @@ export class HoneycombSystem {
     // Dispose individual strut geometries after merge
     for (const g of struts) g.dispose()
 
-    // Glassy material — fresnel-driven transparency with bright reflective edges
+    // Glassy material — fresnel shader handles alpha, PBR handles reflections
     const colour = config.lightKey ?? config.color ?? '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
-      roughness: 0.08,
-      metalness: 0.2,
+      roughness: 0.06,
+      metalness: 0.15,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      envMapIntensity: 4.0,
+      clearcoatRoughness: 0.04,
+      envMapIntensity: 3.5,
       transparent: true,
       opacity: 1.0,
+      depthWrite: false,
       side: THREE.DoubleSide,
     })
 
@@ -260,7 +261,7 @@ export class HoneycombSystem {
       )
 
       // Fragment shader — fresnel glass effect
-      // Edges catch light (bright, opaque), face-on surfaces go transparent
+      // Edges catch light (bright, opaque), face-on surfaces are subtly visible
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <opaque_fragment>',
         /* glsl */ `
@@ -268,12 +269,12 @@ export class HoneycombSystem {
           vec3 viewDir = normalize(vViewPosition);
           vec3 norm = normalize(vNormal);
           float fresnel = 1.0 - abs(dot(viewDir, norm));
-          fresnel = pow(fresnel, 2.0);
+          fresnel = pow(fresnel, 1.5);  // softer curve than pow(2)
 
-          // Edges: opaque + bright. Face-on: mostly transparent
-          float glassAlpha = mix(0.08, 0.9, fresnel);
-          // Brighten edges for that glass catchlight
-          vec3 glassCol = gl_FragColor.rgb + vec3(fresnel * 0.6);
+          // Base visibility so struts never fully vanish + bright edges
+          float glassAlpha = mix(0.15, 0.85, fresnel);
+          // Additive edge glow — catches light like real glass
+          vec3 glassCol = gl_FragColor.rgb * (1.0 + fresnel * 0.8);
 
           gl_FragColor = vec4(glassCol, glassAlpha);
         `
@@ -349,6 +350,7 @@ export class HoneycombSystem {
       this._mesh.material.dispose()
       this._mesh = null
     }
+    this._shader = null
     this._time = 0
   }
 }
