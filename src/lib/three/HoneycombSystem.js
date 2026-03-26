@@ -207,8 +207,6 @@ export class HoneycombSystem {
       clearcoat: 1.0,
       clearcoatRoughness: 0.05,
       envMapIntensity: 3.0,
-      transparent: true,
-      opacity: config.honeycombOpacity ?? 0.7,
     })
 
     mat.customProgramCacheKey = () => 'ebb-honeycomb'
@@ -298,9 +296,6 @@ export class HoneycombSystem {
     } else if (this._mesh) {
       const colour = config.lightRim ?? config.lightFill ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
-      if (config.honeycombOpacity != null) {
-        this._mesh.material.opacity = config.honeycombOpacity
-      }
 
       // Update shader uniforms without rebuild
       if (this._shader) {
