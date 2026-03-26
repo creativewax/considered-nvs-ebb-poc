@@ -79,7 +79,7 @@ function findNeighbours(centres, maxNeighbours = 6) {
 
 // ------------------------------------------------------------ STRUT GEOMETRY
 
-function buildStrutGeometry(pointA, pointB, edgeIndex, cellIndexA, seed, strutSize) {
+function buildStrutGeometry(pointA, pointB, jointIdxA, jointIdxB, seed, strutSize) {
   const midpoint = new THREE.Vector3().addVectors(pointA, pointB).multiplyScalar(0.5)
   const direction = new THREE.Vector3().subVectors(pointB, pointA)
   const length = direction.length()
@@ -96,34 +96,44 @@ function buildStrutGeometry(pointA, pointB, edgeIndex, cellIndexA, seed, strutSi
   matrix.compose(midpoint, quaternion, new THREE.Vector3(1, 1, 1))
   geo.applyMatrix4(matrix)
 
+  // Normalised joint directions for shader displacement
+  const dirA = pointA.clone().normalize()
+  const dirB = pointB.clone().normalize()
+
   // Stamp per-vertex custom attributes
   const vertCount = geo.attributes.position.count
-  const cellIndices = new Float32Array(vertCount)
   const edgeTs = new Float32Array(vertCount)
   const noiseSeeds = new Float32Array(vertCount)
-  const strutMids = new Float32Array(vertCount * 3)
-
-  // Normalised midpoint direction — shared by every vertex on this strut
-  const midDir = midpoint.clone().normalize()
+  const jointAs = new Float32Array(vertCount)
+  const jointBs = new Float32Array(vertCount)
+  const jointDirAs = new Float32Array(vertCount * 3)
+  const jointDirBs = new Float32Array(vertCount * 3)
 
   for (let v = 0; v < vertCount; v++) {
-    cellIndices[v] = cellIndexA
-    // Map vertex position along edge to 0–1 parameter
+    // Map vertex position along edge to 0→1
     const pos = new THREE.Vector3()
     pos.fromBufferAttribute(geo.attributes.position, v)
     const projected = pos.clone().sub(pointA)
     edgeTs[v] = Math.max(0, Math.min(1, projected.dot(direction) / length))
-    noiseSeeds[v] = seed + edgeIndex * 0.01
-    // Every vertex gets the same strut midpoint direction
-    strutMids[v * 3]     = midDir.x
-    strutMids[v * 3 + 1] = midDir.y
-    strutMids[v * 3 + 2] = midDir.z
+    noiseSeeds[v] = seed
+    // Joint indices — shared joints across struts get the same phase
+    jointAs[v] = jointIdxA
+    jointBs[v] = jointIdxB
+    // Joint displacement directions
+    jointDirAs[v * 3]     = dirA.x
+    jointDirAs[v * 3 + 1] = dirA.y
+    jointDirAs[v * 3 + 2] = dirA.z
+    jointDirBs[v * 3]     = dirB.x
+    jointDirBs[v * 3 + 1] = dirB.y
+    jointDirBs[v * 3 + 2] = dirB.z
   }
 
-  geo.setAttribute('aCellIndex', new THREE.BufferAttribute(cellIndices, 1))
   geo.setAttribute('aEdgeT', new THREE.BufferAttribute(edgeTs, 1))
   geo.setAttribute('aNoiseSeed', new THREE.BufferAttribute(noiseSeeds, 1))
-  geo.setAttribute('aStrutDir', new THREE.BufferAttribute(strutMids, 3))
+  geo.setAttribute('aJointA', new THREE.BufferAttribute(jointAs, 1))
+  geo.setAttribute('aJointB', new THREE.BufferAttribute(jointBs, 1))
+  geo.setAttribute('aJointDirA', new THREE.BufferAttribute(jointDirAs, 3))
+  geo.setAttribute('aJointDirB', new THREE.BufferAttribute(jointDirBs, 3))
 
   return geo
 }
@@ -175,7 +185,7 @@ export class HoneycombSystem {
     const struts = []
     for (let i = 0; i < keptEdges.length; i++) {
       const [a, b] = keptEdges[i]
-      const geo = buildStrutGeometry(centres[a], centres[b], i, a, rng(), strutSize)
+      const geo = buildStrutGeometry(centres[a], centres[b], a, b, rng(), strutSize)
       struts.push(geo)
     }
 
@@ -215,10 +225,12 @@ export class HoneycombSystem {
 
       // Declare attributes + uniforms, then replace begin_vertex
       shader.vertexShader = `
-        attribute float aCellIndex;
         attribute float aEdgeT;
         attribute float aNoiseSeed;
-        attribute vec3 aStrutDir;
+        attribute float aJointA;
+        attribute float aJointB;
+        attribute vec3 aJointDirA;
+        attribute vec3 aJointDirB;
         uniform float uTime;
         uniform float uBaseRadius;
         uniform float uPulseRate;
@@ -228,15 +240,19 @@ export class HoneycombSystem {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `
-          // Per-cell outward pulse — each cell pulses independently
-          float cellPhase = aCellIndex * 2.718 + aNoiseSeed * 6.283;
-          float pulse = sin(uTime * uPulseRate * 6.2832 + cellPhase);
-          pulse = (pulse + 1.0) * 0.5;  // remap to 0→1 (outward only)
+          // Per-joint pulse — joints shared across struts get the same phase
+          float phaseA = aJointA * 2.718 + aNoiseSeed * 6.283;
+          float phaseB = aJointB * 3.141 + aNoiseSeed * 4.669;
+          float pulseA = (sin(uTime * uPulseRate * 6.2832 + phaseA) + 1.0) * 0.5;
+          float pulseB = (sin(uTime * uPulseRate * 6.2832 + phaseB) + 1.0) * 0.5;
 
-          // Displace whole strut as a rigid unit along its midpoint direction
-          // aStrutDir is the same for every vertex on the strut
-          float displacement = pulse * uPulseAmount;
-          vec3 transformed = position + aStrutDir * displacement;
+          // Blend between joint A and joint B displacement based on position along strut
+          float t = aEdgeT;
+          vec3 dispA = aJointDirA * pulseA * uPulseAmount;
+          vec3 dispB = aJointDirB * pulseB * uPulseAmount;
+          vec3 disp = mix(dispA, dispB, t);
+
+          vec3 transformed = position + disp;
         `
       )
     }
