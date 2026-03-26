@@ -125,6 +125,7 @@ export class HoneycombSystem {
   constructor(scene) {
     this._scene = scene
     this._mesh = null
+    this._shader = null
     this._time = 0
     this._lastDensity = 0
     this._lastCompleteness = 0
@@ -189,6 +190,47 @@ export class HoneycombSystem {
 
     mat.customProgramCacheKey = () => 'ebb-honeycomb'
 
+    mat.onBeforeCompile = (shader) => {
+      this._shader = shader
+
+      // Custom uniforms
+      shader.uniforms.uTime = { value: 0 }
+      shader.uniforms.uBaseRadius = { value: config.honeycombRadius ?? 1.2 }
+      shader.uniforms.uPulseRate = { value: config.honeycombPulseRate ?? 0.1 }
+      shader.uniforms.uPulseAmount = { value: config.honeycombPulseAmount ?? 0.02 }
+
+      // Declare attributes + uniforms, then replace begin_vertex
+      shader.vertexShader = `
+        attribute float aCellIndex;
+        attribute float aEdgeT;
+        attribute float aNoiseSeed;
+        uniform float uTime;
+        uniform float uBaseRadius;
+        uniform float uPulseRate;
+        uniform float uPulseAmount;
+      ` + shader.vertexShader
+
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        /* glsl */ `
+          // Per-cell outward pulse — each cell pulses independently
+          float cellPhase = aCellIndex * 2.718 + aNoiseSeed * 6.283;
+          float pulse = sin(uTime * uPulseRate * 6.2832 + cellPhase);
+          pulse = (pulse + 1.0) * 0.5;  // remap to 0→1 (outward only)
+
+          // Taper at strut ends — thinner at tips
+          float taper = sin(aEdgeT * 3.14159);
+          float scaleFactor = 0.4 + taper * 0.6;
+
+          // Reposition at configurable radius + pulse
+          vec3 dir = normalize(position);
+          float currentR = length(position);
+          float targetR = uBaseRadius + pulse * uPulseAmount * scaleFactor;
+          vec3 transformed = dir * (currentR + (targetR - currentR));
+        `
+      )
+    }
+
     if (this._scene.environment) {
       mat.envMap = this._scene.environment
     }
@@ -200,9 +242,9 @@ export class HoneycombSystem {
   // ------------------------------------------------------------ ANIMATE
 
   update(deltaTime, _config) {
-    if (!this._mesh) return
+    if (!this._mesh || !this._shader) return
     this._time += deltaTime
-    // Vertex shader animation will be added in Task 3
+    this._shader.uniforms.uTime.value = this._time
   }
 
   // ------------------------------------------------------------ CONFIG
@@ -222,6 +264,19 @@ export class HoneycombSystem {
     } else if (this._mesh) {
       const colour = config.lightKey ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
+
+      // Update shader uniforms without rebuild
+      if (this._shader) {
+        if (config.honeycombRadius != null) {
+          this._shader.uniforms.uBaseRadius.value = config.honeycombRadius
+        }
+        if (config.honeycombPulseRate != null) {
+          this._shader.uniforms.uPulseRate.value = config.honeycombPulseRate
+        }
+        if (config.honeycombPulseAmount != null) {
+          this._shader.uniforms.uPulseAmount.value = config.honeycombPulseAmount
+        }
+      }
     }
   }
 
