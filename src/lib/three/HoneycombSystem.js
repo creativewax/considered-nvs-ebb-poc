@@ -101,20 +101,29 @@ function buildStrutGeometry(pointA, pointB, edgeIndex, cellIndexA, seed, strutSi
   const cellIndices = new Float32Array(vertCount)
   const edgeTs = new Float32Array(vertCount)
   const noiseSeeds = new Float32Array(vertCount)
+  const strutMids = new Float32Array(vertCount * 3)
+
+  // Normalised midpoint direction — shared by every vertex on this strut
+  const midDir = midpoint.clone().normalize()
 
   for (let v = 0; v < vertCount; v++) {
     cellIndices[v] = cellIndexA
-    // Map vertex z-position along edge to 0–1 parameter
+    // Map vertex position along edge to 0–1 parameter
     const pos = new THREE.Vector3()
     pos.fromBufferAttribute(geo.attributes.position, v)
     const projected = pos.clone().sub(pointA)
     edgeTs[v] = Math.max(0, Math.min(1, projected.dot(direction) / length))
     noiseSeeds[v] = seed + edgeIndex * 0.01
+    // Every vertex gets the same strut midpoint direction
+    strutMids[v * 3]     = midDir.x
+    strutMids[v * 3 + 1] = midDir.y
+    strutMids[v * 3 + 2] = midDir.z
   }
 
   geo.setAttribute('aCellIndex', new THREE.BufferAttribute(cellIndices, 1))
   geo.setAttribute('aEdgeT', new THREE.BufferAttribute(edgeTs, 1))
   geo.setAttribute('aNoiseSeed', new THREE.BufferAttribute(noiseSeeds, 1))
+  geo.setAttribute('aStrutDir', new THREE.BufferAttribute(strutMids, 3))
 
   return geo
 }
@@ -209,6 +218,7 @@ export class HoneycombSystem {
         attribute float aCellIndex;
         attribute float aEdgeT;
         attribute float aNoiseSeed;
+        attribute vec3 aStrutDir;
         uniform float uTime;
         uniform float uBaseRadius;
         uniform float uPulseRate;
@@ -223,15 +233,10 @@ export class HoneycombSystem {
           float pulse = sin(uTime * uPulseRate * 6.2832 + cellPhase);
           pulse = (pulse + 1.0) * 0.5;  // remap to 0→1 (outward only)
 
-          // Taper at strut ends — thinner at tips
-          float taper = sin(aEdgeT * 3.14159);
-          float scaleFactor = 0.4 + taper * 0.6;
-
-          // Reposition at configurable radius + pulse
-          vec3 dir = normalize(position);
-          float currentR = length(position);
-          float targetR = uBaseRadius + pulse * uPulseAmount * scaleFactor;
-          vec3 transformed = dir * (currentR + (targetR - currentR));
+          // Displace whole strut as a rigid unit along its midpoint direction
+          // aStrutDir is the same for every vertex on the strut
+          float displacement = pulse * uPulseAmount;
+          vec3 transformed = position + aStrutDir * displacement;
         `
       )
     }
