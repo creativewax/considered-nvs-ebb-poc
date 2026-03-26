@@ -196,20 +196,18 @@ export class HoneycombSystem {
     // Dispose individual strut geometries after merge
     for (const g of struts) g.dispose()
 
-    // Glassy transmission material
+    // Glassy material — semi-transparent with strong reflections
     const colour = config.lightKey ?? config.color ?? '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
-      transmission: 0.85,
-      ior: 1.45,
-      thickness: 0.15,
       roughness: 0.05,
-      metalness: 0,
+      metalness: 0.1,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      envMapIntensity: 2.0,
-      attenuationDistance: 0.5,
-      attenuationColor: new THREE.Color(colour),
+      clearcoatRoughness: 0.03,
+      envMapIntensity: 3.0,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide,
     })
 
     mat.customProgramCacheKey = () => 'ebb-honeycomb'
@@ -297,9 +295,6 @@ export class HoneycombSystem {
     } else if (this._mesh) {
       const colour = config.lightKey ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
-      if (this._mesh.material.attenuationColor) {
-        this._mesh.material.attenuationColor.set(colour)
-      }
 
       // Update shader uniforms without rebuild
       if (this._shader) {
