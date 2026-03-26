@@ -88,6 +88,17 @@ function buildStrutGeometry(pointA, pointB, jointIdxA, jointIdxB, seed, strutSiz
   const s = strutSize || DEFAULT_STRUT_SIZE
   const geo = new THREE.BoxGeometry(s, s * 0.6, length)
 
+  // Compute aEdgeT from local z BEFORE matrix transform
+  // Box is centred at origin along z, so z ranges from -length/2 to +length/2
+  const vertCount = geo.attributes.position.count
+  const edgeTs = new Float32Array(vertCount)
+  const halfLen = length * 0.5
+  const localPos = geo.attributes.position.array
+  for (let v = 0; v < vertCount; v++) {
+    const z = localPos[v * 3 + 2]
+    edgeTs[v] = (z + halfLen) / length  // 0 at joint A end, 1 at joint B end
+  }
+
   // Orient the box along the edge direction
   const quaternion = new THREE.Quaternion()
   quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction)
@@ -101,8 +112,6 @@ function buildStrutGeometry(pointA, pointB, jointIdxA, jointIdxB, seed, strutSiz
   const dirB = pointB.clone().normalize()
 
   // Stamp per-vertex custom attributes
-  const vertCount = geo.attributes.position.count
-  const edgeTs = new Float32Array(vertCount)
   const noiseSeeds = new Float32Array(vertCount)
   const jointAs = new Float32Array(vertCount)
   const jointBs = new Float32Array(vertCount)
@@ -110,16 +119,9 @@ function buildStrutGeometry(pointA, pointB, jointIdxA, jointIdxB, seed, strutSiz
   const jointDirBs = new Float32Array(vertCount * 3)
 
   for (let v = 0; v < vertCount; v++) {
-    // Map vertex position along edge to 0→1
-    const pos = new THREE.Vector3()
-    pos.fromBufferAttribute(geo.attributes.position, v)
-    const projected = pos.clone().sub(pointA)
-    edgeTs[v] = Math.max(0, Math.min(1, projected.dot(direction) / length))
     noiseSeeds[v] = seed
-    // Joint indices — shared joints across struts get the same phase
     jointAs[v] = jointIdxA
     jointBs[v] = jointIdxB
-    // Joint displacement directions
     jointDirAs[v * 3]     = dirA.x
     jointDirAs[v * 3 + 1] = dirA.y
     jointDirAs[v * 3 + 2] = dirA.z
@@ -248,13 +250,14 @@ export class HoneycombSystem {
           float radiusScale = buildR > 0.001 ? uBaseRadius / buildR : 1.0;
           vec3 basePos = position * radiusScale;
 
-          // Per-joint pulse — joints shared across struts get the same phase
-          float phaseA = aJointA * 2.718 + aNoiseSeed * 6.283;
-          float phaseB = aJointB * 3.141 + aNoiseSeed * 4.669;
+          // Per-joint pulse — phase derived ONLY from joint index
+          // so all struts meeting at the same joint pulse identically
+          float phaseA = aJointA * 2.718;
+          float phaseB = aJointB * 2.718;
           float pulseA = (sin(uTime * uPulseRate * 6.2832 + phaseA) + 1.0) * 0.5;
           float pulseB = (sin(uTime * uPulseRate * 6.2832 + phaseB) + 1.0) * 0.5;
 
-          // Blend between joint A and joint B displacement based on position along strut
+          // Blend displacement between endpoints based on position along strut
           float t = aEdgeT;
           vec3 dispA = aJointDirA * pulseA * uPulseAmount;
           vec3 dispB = aJointDirB * pulseB * uPulseAmount;
