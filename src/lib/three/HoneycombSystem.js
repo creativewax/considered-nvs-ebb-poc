@@ -240,6 +240,11 @@ export class HoneycombSystem {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `
+          // Reposition to configurable radius — scale from build radius to uBaseRadius
+          float buildR = length(position);
+          float radiusScale = buildR > 0.001 ? uBaseRadius / buildR : 1.0;
+          vec3 basePos = position * radiusScale;
+
           // Per-joint pulse — joints shared across struts get the same phase
           float phaseA = aJointA * 2.718 + aNoiseSeed * 6.283;
           float phaseB = aJointB * 3.141 + aNoiseSeed * 4.669;
@@ -252,7 +257,7 @@ export class HoneycombSystem {
           vec3 dispB = aJointDirB * pulseB * uPulseAmount;
           vec3 disp = mix(dispA, dispB, t);
 
-          vec3 transformed = position + disp;
+          vec3 transformed = basePos + disp;
         `
       )
     }
