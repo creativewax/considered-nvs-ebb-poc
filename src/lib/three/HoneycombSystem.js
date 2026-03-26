@@ -197,13 +197,13 @@ export class HoneycombSystem {
     for (const g of struts) g.dispose()
 
     // Glass material — native Three.js transmission for real refraction
-    const colour = config.lightKey ?? config.color ?? '#ffffff'
+    const colour = config.lightRim ?? config.lightFill ?? config.color ?? '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
       transmission: config.honeycombTransmission ?? 0.8,
       roughness: 0.15,
       metalness: 0,
-      ior: 1.95,
+      ior: 1.5,
       thickness: 0.25,
       clearcoat: 1.0,
       clearcoatRoughness: 0.1,
@@ -212,7 +212,6 @@ export class HoneycombSystem {
       attenuationColor: new THREE.Color(colour),
       transparent: true,
       opacity: config.honeycombOpacity ?? 0.7,
-      depthWrite: false,
       side: THREE.DoubleSide,
     })
 
@@ -300,7 +299,7 @@ export class HoneycombSystem {
     if (densityDelta > 0.1 || completenessDelta > 0.1 || thicknessDelta > 0.002 || !this._mesh) {
       this.build(config)
     } else if (this._mesh) {
-      const colour = config.lightKey ?? config.color ?? '#ffffff'
+      const colour = config.lightRim ?? config.lightFill ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
       if (config.honeycombTransmission != null) {
         this._mesh.material.transmission = config.honeycombTransmission
