@@ -200,16 +200,19 @@ export class HoneycombSystem {
     const colour = config.lightKey ?? config.color ?? '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
-      transmission: 1.0,
+      transmission: config.honeycombTransmission ?? 0.8,
       roughness: 0.15,
       metalness: 0,
-      ior: 1.5,
-      thickness: 0.5,
+      ior: 1.95,
+      thickness: 0.25,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      envMapIntensity: 2.5,
+      clearcoatRoughness: 0.1,
+      envMapIntensity: 1.0,
       attenuationDistance: 0.3,
       attenuationColor: new THREE.Color(colour),
+      transparent: true,
+      opacity: config.honeycombOpacity ?? 0.7,
+      depthWrite: false,
       side: THREE.DoubleSide,
     })
 
@@ -299,6 +302,12 @@ export class HoneycombSystem {
     } else if (this._mesh) {
       const colour = config.lightKey ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
+      if (config.honeycombTransmission != null) {
+        this._mesh.material.transmission = config.honeycombTransmission
+      }
+      if (config.honeycombOpacity != null) {
+        this._mesh.material.opacity = config.honeycombOpacity
+      }
 
       // Update shader uniforms without rebuild
       if (this._shader) {

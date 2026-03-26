@@ -66,12 +66,14 @@ const RANGES = {
   gradFocus:          [10.0, 3.0,   ease.inOutQuad],         // 1=broad wash, 3=focused, 6+=pinpoint
   tendrilPulseAmount: [0.25, 0.0,  ease.linear],           // How far tendrils pulse in/out from centre
   tendrilPulseRate:   [0.25, 0.0,   ease.outQuart],            // Pulse speed — fast/aggressive at low scores
-  honeycombDensity:       [0.3, 0.7,   ease.outCubic],       // Sparse fragments → full lattice
-  honeycombCompleteness:  [0.25, 0.85, ease.outQuad],        // Shattered → mostly intact
-  honeycombRadius:        [1.15, 1.3,  ease.outCubic],       // Tight cage → floating away
+  honeycombDensity:       [0.2, 0.8,   ease.outCubic],       // Sparse fragments → full lattice
+  honeycombCompleteness:  [0.25, 0.95, ease.outQuad],        // Shattered → mostly intact
+  honeycombRadius:        [1.4, 1.2,  ease.inOutSine],       // Tight cage → floating away
   honeycombPulseRate:     [0.4, 0.1,   ease.inOutQuad],      // Erratic → calm
-  honeycombPulseAmount:   [0.1, 0.02,  ease.outQuad],        // Dramatic → gentle
-  honeycombThickness:     [0.02, 0.005, ease.inOutQuad],     // Thick heavy cage → delicate struts
+  honeycombPulseAmount:   [0.02, 0.02,  ease.outQuad],        // Dramatic → gentle
+  honeycombThickness:     [0.015, 0.005, ease.inOutQuad],     // Thick heavy cage → delicate struts
+  honeycombTransmission:  [0.6, 1.0,    ease.outQuad],       // Murky glass → crystal clear
+  honeycombOpacity:       [0.85, 0.5,   ease.inOutQuad],     // Solid cage → ghostly
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
