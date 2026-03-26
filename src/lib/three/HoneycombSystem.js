@@ -86,7 +86,7 @@ function buildStrutGeometry(pointA, pointB, jointIdxA, jointIdxB, seed, strutSiz
   direction.normalize()
 
   const s = strutSize || DEFAULT_STRUT_SIZE
-  const geo = new THREE.BoxGeometry(s, s * 0.6, length)
+  const geo = new THREE.BoxGeometry(s, s, length)
 
   // Compute aEdgeT from local z BEFORE matrix transform
   // Box is centred at origin along z, so z ranges from -length/2 to +length/2
