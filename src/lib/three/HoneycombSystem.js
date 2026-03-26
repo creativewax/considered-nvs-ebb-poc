@@ -85,23 +85,23 @@ function buildStrutGeometry(pointA, pointB, jointIdxA, jointIdxB, seed, strutSiz
   const length = direction.length()
   direction.normalize()
 
-  const s = strutSize || DEFAULT_STRUT_SIZE
-  const geo = new THREE.BoxGeometry(s, s, length)
+  const r = (strutSize || DEFAULT_STRUT_SIZE) * 0.5
+  const segments = IS_MOBILE ? 4 : 6
+  const geo = new THREE.CylinderGeometry(r, r, length, segments, 1)
 
-  // Compute aEdgeT from local z BEFORE matrix transform
-  // Box is centred at origin along z, so z ranges from -length/2 to +length/2
+  // Cylinder is along Y axis — compute aEdgeT from local y BEFORE matrix transform
   const vertCount = geo.attributes.position.count
   const edgeTs = new Float32Array(vertCount)
   const halfLen = length * 0.5
   const localPos = geo.attributes.position.array
   for (let v = 0; v < vertCount; v++) {
-    const z = localPos[v * 3 + 2]
-    edgeTs[v] = (z + halfLen) / length  // 0 at joint A end, 1 at joint B end
+    const y = localPos[v * 3 + 1]
+    edgeTs[v] = (y + halfLen) / length  // 0 at joint A end, 1 at joint B end
   }
 
-  // Orient the box along the edge direction
+  // Orient cylinder along the edge direction (Y axis → direction)
   const quaternion = new THREE.Quaternion()
-  quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction)
+  quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction)
 
   const matrix = new THREE.Matrix4()
   matrix.compose(midpoint, quaternion, new THREE.Vector3(1, 1, 1))
