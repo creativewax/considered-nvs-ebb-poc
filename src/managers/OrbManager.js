@@ -71,7 +71,7 @@ const RANGES = {
   honeycombRadius:        [1.15, 1.3,  ease.outCubic],       // Tight cage → floating away
   honeycombPulseRate:     [0.4, 0.1,   ease.inOutQuad],      // Erratic → calm
   honeycombPulseAmount:   [0.1, 0.02,  ease.outQuad],        // Dramatic → gentle
-  honeycombThickness:     [0.012, 0.004, ease.inOutQuad],    // Thick cage → delicate struts
+  honeycombThickness:     [0.02, 0.005, ease.inOutQuad],     // Thick heavy cage → delicate struts
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
