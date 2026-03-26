@@ -8,6 +8,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
 // ACES tone mapping produces blobmixer-quality results.
 import { gsap } from 'gsap'
 import { TendrilSystem } from './TendrilSystem'
+import { HoneycombSystem } from './HoneycombSystem'
 import noiseGlsl from './shaders/noise.glsl?raw'
 import displacementGlsl from './shaders/displacement.glsl?raw'
 
@@ -102,6 +103,8 @@ export class OrbScene {
     this._mesh?.geometry?.dispose()
     this._mesh?.material?.dispose()
     this._tendrils?.dispose()
+    this._honeycomb?.dispose()
+    this._honeycomb = null
     this._renderer?.dispose()
     this._scene = null
     this._camera = null
@@ -296,6 +299,9 @@ export class OrbScene {
 
     // ── TENDRIL SYSTEM — metallic structures growing from the sphere ──
     this._tendrils = new TendrilSystem(this._scene)
+
+    // ── HONEYCOMB SYSTEM — fractured crystalline cage around the sphere ──
+    this._honeycomb = new HoneycombSystem(this._scene)
   }
 
   // ------------------------------------------------------------
@@ -355,6 +361,9 @@ export class OrbScene {
         if (this._tendrils) {
           this._tendrils.setEnvMap(envMap)
         }
+        if (this._honeycomb) {
+          this._honeycomb.setEnvMap(envMap)
+        }
         texture.dispose()
         pmrem.dispose()
       },
@@ -413,6 +422,10 @@ export class OrbScene {
     // Animate tendrils
     if (this._tendrils && this._lastConfig) {
       this._tendrils.update(0.016, this._lastConfig)
+    }
+    // Animate honeycomb
+    if (this._honeycomb && this._lastConfig) {
+      this._honeycomb.update(0.016, this._lastConfig)
     }
 
 
@@ -548,6 +561,11 @@ export class OrbScene {
 
     // Tendril structures
     this._updateTendrils(config)
+
+    // Honeycomb lattice
+    if (this._honeycomb) {
+      this._honeycomb.updateConfig(config)
+    }
 
     // Light colours — paint the orb with gradient blending
     // Light colours + fragment shader gradient colours
