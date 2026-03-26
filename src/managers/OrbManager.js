@@ -66,6 +66,11 @@ const RANGES = {
   gradFocus:          [10.0, 3.0,   ease.inOutQuad],         // 1=broad wash, 3=focused, 6+=pinpoint
   tendrilPulseAmount: [0.25, 0.0,  ease.linear],           // How far tendrils pulse in/out from centre
   tendrilPulseRate:   [0.25, 0.0,   ease.outQuart],            // Pulse speed — fast/aggressive at low scores
+  honeycombDensity:       [0.7, 0.3,   ease.inQuad],         // Dense cage → sparse floaters
+  honeycombCompleteness:  [0.7, 0.35,  ease.inSine],         // More intact → more broken
+  honeycombRadius:        [1.15, 1.3,  ease.outCubic],       // Tight cage → floating away
+  honeycombPulseRate:     [0.4, 0.1,   ease.inOutQuad],      // Erratic → calm
+  honeycombPulseAmount:   [0.1, 0.02,  ease.outQuad],        // Dramatic → gentle
 }
 
 // ------------------------------------------------------------ COLOUR STOPS
