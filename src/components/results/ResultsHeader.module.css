@@ -7,6 +7,8 @@
   padding: var(--space-md) var(--content-padding);
   padding-top: calc(var(--safe-top) + var(--space-md));
   min-height: var(--header-height);
+  position: relative;
+  z-index: 1;
 }
 
 .left {

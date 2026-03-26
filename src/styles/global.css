@@ -236,6 +236,8 @@ a {
 
 .page-content {
   padding: var(--content-padding);
+  position: relative;
+  z-index: 1;
 }
 
 /* ── DESKTOP: phone-frame layout ── */
