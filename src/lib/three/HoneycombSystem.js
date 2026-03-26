@@ -198,23 +198,17 @@ export class HoneycombSystem {
     // Dispose individual strut geometries after merge
     for (const g of struts) g.dispose()
 
-    // Glass material — native Three.js transmission for real refraction
+    // Polished metallic — shows 3D form via reflections and shading
     const colour = config.lightRim ?? config.lightFill ?? config.color ?? '#ffffff'
     const mat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(colour),
-      transmission: config.honeycombTransmission ?? 0.8,
-      roughness: 0.15,
-      metalness: 0,
-      ior: 1.5,
-      thickness: 0.25,
+      roughness: 0.08,
+      metalness: 0.9,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      envMapIntensity: 1.0,
-      attenuationDistance: 0.3,
-      attenuationColor: new THREE.Color(colour),
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 3.0,
       transparent: true,
       opacity: config.honeycombOpacity ?? 0.7,
-      side: THREE.DoubleSide,
     })
 
     mat.customProgramCacheKey = () => 'ebb-honeycomb'
@@ -304,9 +298,6 @@ export class HoneycombSystem {
     } else if (this._mesh) {
       const colour = config.lightRim ?? config.lightFill ?? config.color ?? '#ffffff'
       this._mesh.material.color.set(colour)
-      if (config.honeycombTransmission != null) {
-        this._mesh.material.transmission = config.honeycombTransmission
-      }
       if (config.honeycombOpacity != null) {
         this._mesh.material.opacity = config.honeycombOpacity
       }
